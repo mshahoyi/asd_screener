@@ -1,0 +1,38 @@
+Here is a comprehensive list of user stories for the Autism screening research app.
+
+### As a Child User (The Participant)
+
+- **As a child**, I want to see a friendly character on the screen so that I feel engaged and comfortable.
+- **As a child**, I want to hear the character ask me to find their favorite item so that I know what to do.
+- **As a child**, I want to be able to see where the character's eyes are looking so I can have a clue about which item to pick.
+- **As a child**, I want to be able to touch an item and drag it over to the character to show them my choice.
+- **As a child**, I want to receive clear and happy feedback (e.g., the character smiles, a happy sound plays) when I choose the correct item so I know I did a good job.
+- **As a child**, if I choose the wrong item, I want the character to give me another hint instead of just saying "no," so I can try again without feeling bad.
+- **As a child**, if I struggle, I want to see the character turn their whole face towards the correct item to give me a stronger hint.
+- **As a child**, if I still can't find the right one, I want to see the character point to it, making it very clear.
+- **As a child**, as a final hint, I want to see the correct item shine or glow so I can't miss it.
+- **As a child**, I want to move on to a new puzzle with different items after I finish one, so I don't get bored.
+- **As a child**, I want the app to be colorful and responsive, so it feels like a fun game.
+
+### As a Researcher (The Administrator)
+
+- **As a researcher**, I want to be able to create, view, and manage anonymous profiles for each participant (e.g., Participant_001, Participant_002) so that I can track their progress individually and longitudinally.
+- **As a researcher**, I want to be able to initiate a new "session" for a participant so that I can control when the data collection starts.
+- **As a researcher**, I want the app to automatically log every interaction a child makes, including taps, drag-start-points, drag-end-points, and the complete drag path coordinates.
+- **As a researcher**, I want the app to record the time (in milliseconds) from the moment a trial starts until the child makes their first interaction, so I can measure response latency.
+- **As a researcher**, I want the app to log every incorrect item choice for a given trial so that I can calculate the number of mistakes.
+- **As a researcher**, I want the app to record which level of hint (1-Eye Gaze, 2-Head Turn, 3-Pointing, 4-Glow) was required for the child to make the correct choice, so I can quantify the level of support needed.
+- **As a researcher**, I want the app to log the total time taken to complete each trial successfully.
+- **As a researcher**, I want to be able to configure session parameters, such as the number of trials, the set of items used, and the order of presentation.
+- **As a researcher**, I want to be able to securely export all the collected data for a single participant or all participants into a machine-readable format (e.g., CSV or JSON) for external statistical analysis.
+- **As a researcher**, I want the data export to be clearly structured, with columns for Participant ID, Trial Number, Item, Correctness, Response Time, Hint Level, and raw interaction stream data.
+- **As a researcher**, I want a secure, password-protected interface to access the data and participant management features, separate from the child's interface.
+
+### System & Technical Stories
+
+- **As the system**, it must present a central character and four identical items in randomized positions around the character for each new trial.
+- **As the system**, it must randomly designate one of the four items as "correct" at the beginning of each trial.
+- **As the system**, it must trigger the sequence of hints (Eye Gaze -> Head Turn -> Point -> Glow) in response to incorrect user selections.
+- **As the system**, it must log all specified data points (timestamps, coordinates, events) to a local, secure database on the device.
+- **As the system**, it must ensure that all logs are accurately associated with the active participant's anonymous ID.
+- **As the system**, it must provide a data export function that compiles logs into a single, well-formatted file.
