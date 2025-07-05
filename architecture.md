@@ -1,113 +1,95 @@
-# Architecture Plan: Autism Screening Research App
+# Architecture Plan: On-Device Autism Screening App
 
-This document outlines the architecture for the Autism screening research app.
+This document outlines the architecture for the Autism screening research app, designed as a fully on-device, offline-first application.
 
-## 1. Core Technologies
+## 1. Core Technology
 
-### Unified Frontend (Mobile & Web)
-- **Framework:** **[Expo (React Native)](https://expo.dev/)** with TypeScript. This single application will contain both the child's game and the researcher dashboard.
-- **Routing:** [Expo Router](https://docs.expo.dev/router/introduction/) will manage navigation between the game and dashboard sections.
-- **Styling:** [React Native Paper](https://reactnativepaper.com/) for UI components.
-- **Animation & Gestures:** [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/) & [React Native Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/).
-
-### Backend API Server
-- **Framework:** **[Next.js](https://nextjs.org/)** with TypeScript, used purely as a backend API endpoint.
-- **API:** **[tRPC](https://trpc.io/)** for end-to-end typesafe APIs between the Expo app and the Next.js server.
-- **Database:** **[NeonDB](https://neon.tech/)** (PostgreSQL).
-- **ORM:** **[PrismaJS](https://www.prisma.io/)**.
-- **Authentication:** **[Supabase](https://supabase.com/)** for researcher authentication, managed by the backend.
-
-### Monorepo
-- **Package Manager:** **[pnpm](https://pnpm.io/)** with workspaces.
+- **Framework:** **[Expo (React Native)](https://expo.dev/)** with TypeScript. This will be a universal app that runs on mobile (iOS, Android) and web. It will contain both the child's game and the researcher dashboard.
+- **Local Database:** **[WatermelonDB](https://github.com/Nozbe/WatermelonDB)**. A high-performance reactive database framework built for React Native. It will handle all data logging and querying locally on the device.
+- **Routing:** **[Expo Router](https://docs.expo.dev/router/introduction/)** will manage navigation between the child's game and the researcher's dashboard.
+- **Styling:** **[React Native Paper](https://reactnativepaper.com/)** for UI components.
+- **Animation & Gestures:** **[React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/)** & **[React Native Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/)**.
+- **Data Export:** The app will use Expo's `FileSystem` API to generate and share CSV or JSON files of the collected data.
 
 ## 2. System Architecture
 
-The application will be a monorepo containing two main packages:
+The entire application will be a single Expo project.
 
-1.  `apps/expo`: The unified frontend application. It includes the game for mobile and a web-based researcher dashboard. Researchers will access their tools via the web deployment of this app.
-2.  `apps/next`: The backend tRPC server. This application will **not** serve any significant UI. Its sole purpose is to provide the API for the Expo app to consume.
+- **The Game:** An interactive experience for children, running on **both mobile and web**.
+- **The Researcher Dashboard:** A section of the app for researchers to manage data. It will be accessible on both mobile and web without authentication.
+- **Local Data Management:** All data (participants, sessions, trials) will be stored in the local WatermelonDB database on the device.
 
-A `packages/trpc` directory will be used to share the tRPC router definition between the frontend and backend.
+## 3. Data Model (WatermelonDB)
 
-### 2.1. Frontend (`apps/expo`)
-The Expo app will handle all user interaction.
-- **Game:** A full-screen, interactive experience for children on mobile devices.
-- **Researcher Dashboard:** A secure, password-protected web interface for researchers, built using React Native web components.
-- **Data Sync:** The app will communicate with the Next.js backend via tRPC to send and receive all participant and trial data.
+The data model will be defined for WatermelonDB. The `Researcher` model has been removed as authentication is not required.
 
-### 2.2. Backend (`apps/next`)
-The Next.js application will serve as the data and authentication hub.
-- **tRPC API:** Exposes all the methods needed for the Expo app to function (e.g., `createParticipant`, `saveTrial`, `exportData`).
-- **Database Interaction:** All database operations will be handled by the backend through Prisma.
+```javascript
+// db/models/Participant.js
+import { Model } from '@nozbe/watermelondb'
+import { field, relation } from '@nozbe/watermelondb/decorators'
 
-### 2.3. Database & Schema
-The database will be a PostgreSQL database on NeonDB, managed by Prisma. The schema remains the same.
-
-```prisma
-// (The Prisma schema from the original plan remains here)
-model Researcher {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+export default class Participant extends Model {
+  static table = 'participants'
+  static associations = {
+    sessions: { type: 'has_many', foreignKey: 'participant_id' },
+  }
+  @field('anonymous_id') anonymousId
+  @relation('session', 'participant_id') sessions
 }
-model Participant {
-  id          String    @id @default(cuid())
-  anonymousId String    @unique
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  sessions    Session[]
+
+// db/models/Session.js
+import { Model } from '@nozbe/watermelondb'
+import { field, relation } from '@nozbe/watermelondb/decorators'
+
+export default class Session extends Model {
+  static table = 'sessions'
+  static associations = {
+    trials: { type: 'has_many', foreignKey: 'session_id' },
+  }
+  @field('participant_id') participantId
+  @relation('trial', 'session_id') trials
 }
-model Session {
-  id            String     @id @default(cuid())
-  participantId String
-  participant   Participant @relation(fields: [participantId], references: [id])
-  createdAt     DateTime   @default(now())
-  trials        Trial[]
-}
-model Trial {
-  id           String   @id @default(cuid())
-  sessionId    String
-  session      Session  @relation(fields: [sessionId], references: [id])
-  item         String
-  correct      Boolean
-  responseTime Int
-  hintLevel    Int
-  dragPath     Json
-  createdAt    DateTime @default(now())
+
+// db/models/Trial.js
+import { Model } from '@nozbe/watermelondb'
+import { field } from '@nozbe/watermelondb/decorators'
+
+export default class Trial extends Model {
+  static table = 'trials'
+  @field('item') item
+  @field('correct') correct
+  @field('response_time') responseTime
+  @field('hint_level') hintLevel
+  @field('drag_path') dragPath // Stored as a JSON string
 }
 ```
 
-## 3. Project Structure (Monorepo)
+## 4. Project Structure
+
+The project will be a standard Expo (React Native) project.
 
 ```
 .
-├── apps/
-│   ├── expo/
-│   ��   ├── app/
-│   │   │   ├── (game)/
-│   │   │   └── (researcher)/
+├── app/
+│   ├── (game)/
+│   │   ├── index.js
 │   │   └── ...
-│   └── next/
-│       └── src/
-│           └── server/
-│               └── routers/
-│                   └── ...
-├── packages/
-│   └── trpc/
-│       ├── index.ts
-│       └── package.json
-├── prisma/
-│   └── schema.prisma
+│   ├── (researcher)/
+│   │   ├── index.js
+│   │   └── ...
+│   └── _layout.js
+├── assets/
+│   └── ...
+├── components/
+│   └── ...
+├── db/
+│   ├── index.js
+│   ├── schema.js
+│   └── models/
+│       ├── Participant.js
+│       ├── Session.js
+│       └── Trial.js
 ├── .gitignore
 ├── package.json
-├── pnpm-workspace.yaml
 └── tsconfig.json
 ```
-
-## 4. Deployment
-
-- **Frontend (Web Dashboard):** The web version of the Expo app will be deployed to Vercel.
-- **Backend API:** The Next.js tRPC server will be deployed to Vercel as a serverless backend.
-- **Database:** Hosted on NeonDB.
-- **Authentication:** Handled by Supabase.
