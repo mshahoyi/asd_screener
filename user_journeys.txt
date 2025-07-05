@@ -1,0 +1,66 @@
+# User Journeys for the Autism Screening App
+
+This document details the step-by-step user flow for both the researcher and the child participant, using a stack-based navigation model.
+
+---
+
+### Journey 1: First-Time App Launch
+
+1.  **App Start:** The researcher opens the app for the first time.
+2.  **Initial Screen:** The app opens directly to the main researcher dashboard.
+3.  **Empty State:** The dashboard is in an "empty state" and displays a welcoming message and a prominent "Create New Participant" button. There are no participants listed.
+
+---
+
+### Journey 2: Returning User Launch (With Existing Data)
+
+1.  **App Start:** The researcher opens the app.
+2.  **Dashboard Screen:** The app opens directly to the main researcher dashboard.
+3.  **Participant List:** The researcher sees a list of all previously created participants (e.g., "Participant_001", "Participant_002").
+4.  **Call to Action:** A "Create New Participant" button is still visible for adding more participants.
+5.  **Participant Details:** Tapping on a participant in the list navigates to a details screen for that participant, showing their demographic data and session history.
+
+---
+
+### Journey 3: Creating a New Participant
+
+1.  **Initiation:** From the main researcher dashboard, the researcher taps the "Create New Participant" button.
+2.  **Navigation:** The app navigates to a new "Create Participant" screen, which contains a form.
+3.  **Data Entry:** The researcher fills out the form with the following fields:
+    - Age (e.g., number input)
+    - Gender (e.g., a dropdown with options like "Male", "Female", "Other", "Prefer not to say")
+    - Condition (e.g., a dropdown with options like "Typically Developing", "Autism Spectrum Disorder", "Intellectual Disability", "Other")
+4.  **Save:** The researcher taps a "Save Participant" button at the bottom of the form.
+5.  **ID Generation & Storage:** The system generates a new, unique, anonymous ID (e.g., "Participant_003") and saves the new participant's demographic data to the local database.
+6.  **Return to Dashboard:** The app automatically navigates back to the main dashboard, where the new participant now appears in the list.
+
+---
+
+### Journey 4: Initiating a Game Session
+
+1.  **Selection:** From the researcher dashboard, the researcher taps on the desired participant from the list.
+2.  **Participant View:** The app navigates to the participant's detail screen. This screen shows their demographic info, a list of past sessions (if any), and a prominent "Start New Session" button.
+3.  **Session Start:** The researcher taps "Start New Session".
+4.  **Navigation to Game:** The app navigates to the full-screen game view, passing the current participant's ID to it. The researcher then hands the device to the child.
+5.  **Game Ready:** The game screen loads, displaying the central character and the first trial's items, ready for the child to begin.
+
+---
+
+### Journey 5: The Child's Game Session
+
+1.  **Trial Start:** The game presents a trial with a character and several items. The character provides the first hint (e.g., eye gaze).
+2.  **Interaction:** The child interacts by dragging an item. The app logs all interaction data (path, time, etc.) for the current session.
+3.  **Correct Choice:** If the choice is correct, positive feedback is given (e.g., character smiles), and the next trial begins automatically after a short delay.
+4.  **Incorrect Choice:** If the choice is incorrect, the app logs the error and provides the next level of hint (e.g., head turn). This repeats until the child makes the correct choice.
+5.  **Session End:** After the configured number of trials, the session ends. A "Session Complete" message is displayed.
+6.  **Return to Dashboard:** The app automatically navigates back to the participant's detail screen, where the newly completed session is now listed.
+
+---
+
+### Journey 6: Exporting Data
+
+1.  **Navigate to Export:** From the main researcher dashboard, there is a clearly visible "Export All Data" button.
+2.  **Initiate Export:** The researcher taps the "Export All Data" button.
+3.  **Confirmation:** A confirmation dialog appears.
+4.  **File Generation:** Upon confirmation, the app gathers all trial data from the local database and compiles it into a single CSV or JSON file.
+5.  **Share Dialog:** The device's native "Share" or "Save File" dialog opens, allowing the researcher to save the file to their device or send it to another app (e.g., Email, Google Drive).
