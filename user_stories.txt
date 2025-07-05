@@ -30,8 +30,10 @@ Here is a comprehensive list of user stories for the Autism screening research a
 
 ### System & Technical Stories
 
-- **As the system**, it must present a central character and four identical items in randomized positions around the character for each new trial.
-- **As the system**, it must randomly designate one of the four items as "correct" at the beginning of each trial.
+- **As the system**, it must present a central character and items in randomized positions based on the current level:
+    - **Level 1:** Two identical items, positioned to the left and right of the central character.
+    - **Level 2:** Four identical items, with the central character and each item placed in a corner of the screen.
+- **As the system**, it must randomly designate one of the items as "correct" at the beginning of each trial.
 - **As the system**, it must trigger the sequence of hints (Eye Gaze -> Head Turn -> Point -> Glow) in response to incorrect user selections.
 - **As the system**, it must log all specified data points (timestamps, coordinates, events) to a local, secure database on the device.
 - **As the system**, it must ensure that all logs are accurately associated with the active participant's anonymous ID.
