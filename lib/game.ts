@@ -27,19 +27,7 @@ export const gameMachine = setup({
     presentingTrial: {
       on: {
         CORRECT_SELECTION: {
-          actions: [
-            assign({
-              trialCount: ({ context }) => context.trialCount + 1,
-              consecutiveCorrectAtCL2: ({ context }) => {
-                if (context.cueLevel === 2) {
-                  return context.consecutiveCorrectAtCL2 + 1;
-                }
-                return 0;
-              },
-              cueLevel: 1,
-            }),
-            'updateDifficulty',
-          ],
+          target: 'awaitingDrag',
         },
         INCORRECT_SELECTION: {
           actions: assign({
@@ -58,6 +46,29 @@ export const gameMachine = setup({
         },
         EXIT: {
           target: 'sessionEnded',
+        },
+      },
+    },
+    awaitingDrag: {
+      on: {
+        DRAG_SUCCESSFUL: {
+          target: 'presentingTrial',
+          actions: [
+            assign({
+              trialCount: ({ context }) => context.trialCount + 1,
+              consecutiveCorrectAtCL2: ({ context }) => {
+                if (context.cueLevel === 2) {
+                  return context.consecutiveCorrectAtCL2 + 1;
+                }
+                return 0;
+              },
+              cueLevel: 1,
+            }),
+            'updateDifficulty',
+          ],
+        },
+        DRAG_FAILED: {
+          target: 'presentingTrial',
         },
       },
     },

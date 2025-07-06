@@ -1,5 +1,5 @@
-import {createMachine, createActor} from "xstate";
 import {gameMachine} from "./game";
+import {createActor} from "xstate";
 
 describe("gameMachine", () => {
   it("should start at difficulty level 1 and cue level 1", () => {
@@ -9,11 +9,33 @@ describe("gameMachine", () => {
     expect(initialState.context.cueLevel).toBe(1);
   });
 
-  it("should transition to the next trial on correct selection", () => {
+  it("should transition to awaitingDrag on correct selection", () => {
     const actor = createActor(gameMachine).start();
     actor.send({type: "CORRECT_SELECTION"});
+    expect(actor.getSnapshot().value).toBe("awaitingDrag");
+  });
+
+  it("should transition to the next trial on successful drag", () => {
+    const actor = createActor(gameMachine).start();
+    actor.send({type: "CORRECT_SELECTION"});
+    actor.send({type: "DRAG_SUCCESSFUL"});
     expect(actor.getSnapshot().value).toBe("presentingTrial");
     expect(actor.getSnapshot().context.trialCount).toBe(2);
+  });
+
+  it("should return to presentingTrial on drag failure", () => {
+    const actor = createActor(gameMachine).start();
+    actor.send({type: "CORRECT_SELECTION"});
+    actor.send({type: "DRAG_FAILED"});
+    expect(actor.getSnapshot().value).toBe("presentingTrial");
+    expect(actor.getSnapshot().context.trialCount).toBe(1);
+  });
+
+  it("should ignore incorrect selections while awaiting drag", () => {
+    const actor = createActor(gameMachine).start();
+    actor.send({type: "CORRECT_SELECTION"});
+    actor.send({type: "INCORRECT_SELECTION"});
+    expect(actor.getSnapshot().value).toBe("awaitingDrag");
   });
 
   it("should escalate cue level on incorrect selection", () => {
@@ -37,24 +59,29 @@ describe("gameMachine", () => {
     expect(actor.getSnapshot().context.cueLevel).toBe(4);
   });
 
-  it("should upgrade to difficulty level 2 after one correct response at CL1", () => {
+  it("should upgrade to difficulty level 2 after one correct response at CL1 and successful drag", () => {
     const actor = createActor(gameMachine).start();
     actor.send({type: "CORRECT_SELECTION"});
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+    actor.send({type: "DRAG_SUCCESSFUL"});
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
   });
 
-  it("should upgrade to difficulty level 2 after two consecutive correct responses at CL2", () => {
+  it("should upgrade to difficulty level 2 after two consecutive correct responses at CL2 and successful drags", () => {
     const actor = createActor(gameMachine).start();
     actor.send({type: "INCORRECT_SELECTION"}); // cueLevel: 2
     actor.send({type: "CORRECT_SELECTION"});
+    actor.send({type: "DRAG_SUCCESSFUL"});
     actor.send({type: "INCORRECT_SELECTION"}); // cueLevel: 2
     actor.send({type: "CORRECT_SELECTION"});
+    actor.send({type: "DRAG_SUCCESSFUL"});
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
   });
 
   it("should not downgrade difficulty level", () => {
     const actor = createActor(gameMachine).start();
-    actor.send({type: "CORRECT_SELECTION"}); // difficultyLevel: 2
+    actor.send({type: "CORRECT_SELECTION"});
+    actor.send({type: "DRAG_SUCCESSFUL"}); // difficultyLevel: 2
     actor.send({type: "INCORRECT_SELECTION"});
     actor.send({type: "INCORRECT_SELECTION"});
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
