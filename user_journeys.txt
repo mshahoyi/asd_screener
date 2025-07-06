@@ -1,66 +1,154 @@
 # User Journeys for the Autism Screening App
 
-This document details the step-by-step user flow for both the researcher and the child participant, using a stack-based navigation model.
+This document outlines the step-by-step user flows for both researchers and child participants. The app uses a stack-based navigation model. It also integrates updated gameplay mechanics based on the Hierarchical Prompt Protocol (HPP), dynamic difficulty logic, configurable settings, and comprehensive event logging.
 
 ---
 
-### Journey 1: First-Time App Launch
+## Journey 1: First-Time App Launch
 
-1.  **App Start:** The researcher opens the app for the first time.
-2.  **Initial Screen:** The app opens directly to the main researcher dashboard.
-3.  **Empty State:** The dashboard is in an "empty state" and displays a welcoming message and a prominent "Create New Participant" button. There are no participants listed.
-
----
-
-### Journey 2: Returning User Launch (With Existing Data)
-
-1.  **App Start:** The researcher opens the app.
-2.  **Dashboard Screen:** The app opens directly to the main researcher dashboard.
-3.  **Participant List:** The researcher sees a list of all previously created participants (e.g., "Participant_001", "Participant_002").
-4.  **Call to Action:** A "Create New Participant" button is still visible for adding more participants.
-5.  **Participant Details:** Tapping on a participant in the list navigates to a details screen for that participant, showing their demographic data and session history.
+1. **App Start**: Researcher opens the app for the first time.
+2. **Initial Screen**: App opens directly to the main researcher dashboard.
+3. **Empty State**: Dashboard displays a welcoming message and a prominent **“Create New Participant”** button. No participants are listed.
 
 ---
 
-### Journey 3: Creating a New Participant
+## Journey 2: Returning User Launch (With Existing Data)
 
-1.  **Initiation:** From the main researcher dashboard, the researcher taps the "Create New Participant" button.
-2.  **Navigation:** The app navigates to a new "Create Participant" screen, which contains a form.
-3.  **Data Entry:** The researcher fills out the form with the following fields:
-    - Age (e.g., number input)
-    - Gender (e.g., a dropdown with options like "Male", "Female", "Other", "Prefer not to say")
-    - Condition (e.g., a dropdown with options like "Typically Developing", "Autism Spectrum Disorder", "Intellectual Disability", "Other")
-4.  **Save:** The researcher taps a "Save Participant" button at the bottom of the form.
-5.  **ID Generation & Storage:** The system generates a new, unique, anonymous ID (e.g., "Participant_003") and saves the new participant's demographic data to the local database.
-6.  **Return to Dashboard:** The app automatically navigates back to the main dashboard, where the new participant now appears in the list.
-
----
-
-### Journey 4: Initiating a Game Session
-
-1.  **Selection:** From the researcher dashboard, the researcher taps on the desired participant from the list.
-2.  **Participant View:** The app navigates to the participant's detail screen. This screen shows their demographic info, a list of past sessions (if any), and a prominent "Start New Session" button.
-3.  **Session Start:** The researcher taps "Start New Session".
-4.  **Navigation to Game:** The app navigates to the full-screen game view, passing the current participant's ID to it. The researcher then hands the device to the child.
-5.  **Game Ready:** The game screen loads, displaying the central character and the first trial's items, ready for the child to begin.
+1. **App Start**: Researcher opens the app.
+2. **Dashboard Screen**: App shows a list of existing participants.
+3. **Participant Info**: Each participant card includes:
+   - Participant Code (e.g., *Participant_001*)
+   - Age
+   - Diagnosis/Condition
+   - **Number of Sessions Completed**
+   - **Button: "Start Session"** (for launching game directly)
+4. **Additional Options**:
+   - **View Details** button opens full profile with demographics and session logs.
+   - **Create New Participant** button to launch a new game session.
 
 ---
 
-### Journey 5: The Child's Game Session
+## Journey 3: Creating a New Participant
 
-1.  **Trial Start:** The game presents a trial with a character and several items. The character provides the first hint (e.g., eye gaze).
-2.  **Interaction:** The child interacts by dragging an item. The app logs all interaction data (path, time, etc.) for the current session.
-3.  **Correct Choice:** If the choice is correct, positive feedback is given (e.g., character smiles), and the next trial begins automatically after a short delay.
-4.  **Incorrect Choice:** If the choice is incorrect, the app logs the error and provides the next level of hint (e.g., head turn). This repeats until the child makes the correct choice.
-5.  **Session End:** After the configured number of trials, the session ends. A "Session Complete" message is displayed.
-6.  **Return to Dashboard:** The app automatically navigates back to the participant's detail screen, where the newly completed session is now listed.
+1. **Initiation**: Researcher taps **“Create New Participant”**.
+2. **Form Navigation**: App navigates to participant form.
+3. **Data Entry**:
+   - Age
+   - Gender (dropdown)
+   - Condition
+   - Notes
+4. **Save**: Tapping **“Save Participant”** generates a new unique incremental ID (e.g., *3*).
+5. **Return**: App navigates back to dashboard, which now includes the new participant.
 
 ---
 
-### Journey 6: Exporting Data
+## Journey 4: Updating Session Settings
 
-1.  **Navigate to Export:** From the main researcher dashboard, there is a clearly visible "Export All Data" button.
-2.  **Initiate Export:** The researcher taps the "Export All Data" button.
-3.  **Confirmation:** A confirmation dialog appears.
-4.  **File Generation:** Upon confirmation, the app gathers all trial data from the local database and compiles it into a single CSV or JSON file.
-5.  **Share Dialog:** The device's native "Share" or "Save File" dialog opens, allowing the researcher to save the file to their device or send it to another app (e.g., Email, Google Drive).
+1. **Navigation**: Researcher taps the **Settings** icon on the dashboard.
+2. **Settings Page**: App opens to a form with configurable options:
+   - **Session Time Limit** (default: 5 minutes)
+   - **Cue Timeouts**:
+     - CL1 Timeout (default: 30 seconds)
+     - CL2 Timeout (default: 30 seconds)
+     - CL3 Timeout (default: 30 seconds)
+     - CL4 Timeout (default: 30 seconds)
+3. **Save Changes**: Researcher taps **“Save Settings”**, and settings are applied globally to all new sessions.
+4. **Return**: App navigates back to the dashboard.
+
+---
+
+## Journey 5: Initiating a Game Session (Two Methods)
+
+### A. From Dashboard (Quick Start)
+1. **Dashboard View**: Each participant card includes a **“Start Session”** button.
+2. **Start**: Researcher taps the button.
+3. **Game Load**: Game view opens directly, passing participant ID.
+
+### B. From Participant Detail Screen
+1. **Selection**: Researcher taps a participant.
+2. **Details View**: Includes demographic data and past sessions.
+3. **Start**: Researcher taps **“Start New Session”**.
+4. **Game Load**: Game view opens with participant ID.
+
+---
+
+## Journey 6: The Child’s Game Session
+
+1. **Trial Start**:
+   - Character appears and introduces task.
+   - Game begins with **CL1 (eye gaze)** cue.
+   - **CL1 shown continuously** until correct selection or cue timeout.
+   
+2. **Cue Progression**:
+   - If incorrect or no response → escalate cue:
+     - **CL2**: Eye gaze + Head Turn
+     - **CL3**: CL2 + Pointing
+     - **CL4**: CL3 + Sparkle on Target
+   - Timeouts between cues are configurable.
+
+3. **Child Selection**:
+   - Once an object is selected:
+     - Character acknowledges and gives **positive feedback**.
+     - Prompts the child to **drag the object** to them.
+     - Dragging completes the task and is also positively reinforced.
+
+4. **Difficulty Progression** (Updated Logic):
+    - **Session begins in DL-I (2 objects per trial)**.
+    - The system **upgrades to DL-II (4 objects)** if:
+        - Child gets **1 correct response at CL1**, OR
+        - Child gets **2 consecutive correct responses at CL2**.
+    - Once in **DL-II**, the app **remains at DL-II** until session ends — it does not downgrade.
+    - Difficulty is managed by an internal **state machine**.
+
+5. **Session End**:
+   - Session continues until:
+     - Max session time (default 5 min) is reached, OR
+     - Researcher exits manually.
+   - Character thanks the child and ends on a friendly note.
+
+6. **Return**: App automatically navigates back to the participant detail screen or dashboard.
+
+---
+
+## Journey 7: Event & Interaction Logging
+
+The app logs **all session activity** for each child and session, including:
+
+- **System Events**:
+  - Session started
+  - Cue level shown
+  - Cue level escalated
+  - Character welcomed child
+  - Character gave feedback (selection or drag)
+  - Session ended
+
+- **User Interactions**:
+  - Every **object tap**, **object selection**, and **drag path**
+  - Time taken per cue
+  - Cue level where object was selected
+  - Drag success or failure
+
+Each log entry includes timestamps and participant/session references.
+
+---
+
+## Journey 8: Exporting Data
+
+### A. Export All Data (Global)
+1. **From Dashboard**: Researcher taps **“Export All Data”** button.
+2. **Confirmation Prompt**: User confirms action.
+3. **Export File**:
+   - Format: CSV or JSON
+   - Includes: all participants, all sessions, full interaction logs
+4. **Share Dialog**: Opens native share/save interface (e.g., email, drive).
+
+### B. Export Individual Participant Data
+1. **Navigate to Participant Detail Page**
+2. **Tap “Export Participant Data”**
+3. **Confirmation Prompt**
+4. **Export File**:
+   - Includes: participant demographics, session logs, trial-level details
+   - Format: CSV or JSON
+5. **Share Dialog**: Opens native sharing options for saving or sending the file.
+
+---
