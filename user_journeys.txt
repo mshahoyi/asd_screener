@@ -36,7 +36,7 @@ This document outlines the step-by-step user flows for both researchers and chil
    - Age
    - Gender (dropdown)
    - Condition
-   - Notes
+   - Note
 4. **Save**: Tapping **“Save Participant”** generates a new unique incremental ID (e.g., *3*).
 5. **Return**: App navigates back to dashboard, which now includes the new participant.
 

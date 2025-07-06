@@ -6,22 +6,20 @@ This document outlines the architecture for the Autism screening research app, d
 
 - **Framework:** **[Expo (React Native)](https://expo.dev/)** with TypeScript. This will be a universal app that runs on mobile (iOS, Android) and web. It will contain both the child's game and the researcher dashboard.
 - **Local Database:** **[WatermelonDB](https://github.com/Nozbe/WatermelonDB)**. A high-performance reactive database framework built for React Native. It will handle all data logging and querying locally on the device.
-- **Routing:** **[Expo Router](https://docs.expo.dev/router/introduction/)** will manage navigation between the child's game and the researcher's dashboard.
+- **Routing:** **[Expo Router](https://docs.expo.dev/router/introduction/)** will manage the stack-based navigation flow.
 - **Styling:** **[React Native Paper](https://reactnativepaper.com/)** for UI components.
 - **Animation & Gestures:** **[React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/)** & **[React Native Gesture Handler](https://docs.swmansion.com/react-native-gesture-handler/)**.
 - **Data Export:** The app will use Expo's `FileSystem` API to generate and share CSV or JSON files of the collected data.
 
 ## 2. System Architecture
 
-The entire application will be a single Expo project.
+The entire application will be a single Expo project using a stack-based navigation model.
 
-- **The Game:** An interactive experience for children, running on **both mobile and web**.
-- **The Researcher Dashboard:** A section of the app for researchers to manage data. It will be accessible on both mobile and web without authentication.
+- **The Researcher Dashboard:** The app's entry point. It will display a list of participants and provide access to creating new participants and exporting data.
+- **The Game:** A full-screen, interactive experience for children, launched from the researcher dashboard for a specific participant.
 - **Local Data Management:** All data (participants, sessions, trials) will be stored in the local WatermelonDB database on the device.
 
 ## 3. Data Model (WatermelonDB)
-
-The data model will be defined for WatermelonDB. The `Researcher` model has been removed as authentication is not required.
 
 ```javascript
 // db/models/Participant.js
@@ -34,6 +32,10 @@ export default class Participant extends Model {
     sessions: { type: 'has_many', foreignKey: 'participant_id' },
   }
   @field('anonymous_id') anonymousId
+  @field('age') age
+  @field('gender') gender
+  @field('condition') condition
+  @field('note') note
   @relation('session', 'participant_id') sessions
 }
 
@@ -66,18 +68,15 @@ export default class Trial extends Model {
 
 ## 4. Project Structure
 
-The project will be a standard Expo (React Native) project.
+The project will use Expo Router's file-based routing.
 
 ```
 .
 ├── app/
-│   ├── (game)/
-│   │   ├── index.js
-│   │   └── ...
-│   ├── (researcher)/
-│   │   ├── index.js
-│   │   └── ...
-│   └── _layout.js
+│   ├── index.tsx               # Main researcher dashboard
+│   ├── create-participant.tsx  # Form to create a new participant
+│   ├── [participant].tsx       # Participant details screen
+│   └── game.tsx                # The game screen
 ├── assets/
 │   └── ...
 ├── components/

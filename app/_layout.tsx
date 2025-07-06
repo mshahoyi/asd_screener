@@ -1,20 +1,11 @@
-import { Tabs } from 'expo-router';
+import { Stack } from 'expo-router';
 
-export default function AppLayout() {
+export default function RootLayout() {
   return (
-    <Tabs>
-      <Tabs.Screen
-        name="(game)"
-        options={{
-          title: 'Game',
-        }}
-      />
-      <Tabs.Screen
-        name="(researcher)"
-        options={{
-          title: 'Researcher',
-        }}
-      />
-    </Tabs>
+    <Stack>
+      <Stack.Screen name="index" options={{ title: 'Dashboard' }} />
+      <Stack.Screen name="create-participant" options={{ title: 'Create Participant' }} />
+      <Stack.Screen name="[participant]" options={{ headerShown: false }} />
+    </Stack>
   );
 }
