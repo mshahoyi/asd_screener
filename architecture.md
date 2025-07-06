@@ -66,29 +66,4 @@ export default class Trial extends Model {
 }
 ```
 
-## 4. Project Structure
 
-The project will use Expo Router's file-based routing.
-
-```
-.
-├── app/
-│   ├── index.tsx               # Main researcher dashboard
-│   ├── create-participant.tsx  # Form to create a new participant
-│   ├── [participant].tsx       # Participant details screen
-│   └── game.tsx                # The game screen
-├── assets/
-│   └── ...
-├── components/
-│   └── ...
-├── db/
-│   ├── index.js
-│   ├── schema.js
-│   └── models/
-│       ├── Participant.js
-│       ├── Session.js
-│       └── Trial.js
-├── .gitignore
-├── package.json
-└── tsconfig.json
-```
