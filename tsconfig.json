@@ -4,11 +4,22 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/scripts/*": ["./scripts/*"],
-      "@/assets/*": ["./assets/*"],
-      "@/src/*": ["./src/*"]
+      "@/scripts/*": [
+        "./scripts/*"
+      ],
+      "@/assets/*": [
+        "./assets/*"
+      ],
+      "@/src/*": [
+        "./src/*"
+      ]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

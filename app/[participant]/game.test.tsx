@@ -47,13 +47,11 @@ describe("GameScreen UI with Assets", () => {
     mockMathRandom.mockRestore();
   });
 
-  it("should display the neutral character in introduction state initially", async () => {
+  it("should display the neutral character in introduction state initially", () => {
     renderWithGameContext(<GameScreen />);
     // Initially in introduction state, only neutral character should be visible
-    await waitFor(() => {
-      expect(screen.getByText("@/assets/neutral.png")).toBeTruthy();
-      expect(screen.queryAllByTestId("game-item-left").length).toBe(0); // No items in introduction
-    });
+    expect(screen.getByText("@/assets/neutral.png")).toBeTruthy();
+    expect(screen.queryAllByTestId("game-item-left").length).toBe(0); // No items in introduction
   });
 
   it("should transition to gaze and items after START_GAME event", async () => {

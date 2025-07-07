@@ -1,0 +1,77 @@
+# 📣 Character Voice Scripts for Autism Screening App
+
+This document lists the child character's spoken prompts and feedback responses used during the child's gameplay journey. These sound clips are organized by context and cue level.
+
+---
+
+## 🎬 Game Introduction
+
+- "Hi there! I'm Ava. I'm so happy you're here!"
+- "Wanna play a fun game with me?"
+- "I'll show you something I need... Can you find it for me? Let's start!"
+
+---
+
+## 🔍 Cue-Level Prompts
+
+### 🟡 Cue Level 1 – Eye Gaze
+
+- "Can you tap what I'm looking at?"
+
+### 🟠 Cue Level 2 – Head Turn + Eye Gaze
+
+- "Look closely! I just turned my head to help!"
+
+### 🔵 Cue Level 3 – Pointing + Head Turn + Eye Gaze
+
+- "Here! I’m pointing at it for you!"
+
+### 🟣 Cue Level 4 – Glow + All Cues
+
+- "It's shining now!"
+
+---
+
+## 👉 After Item Selection
+
+### ✅ Correct Selection
+
+- "Yay! That’s the one! Great job!"
+
+### ❌ Incorrect Selection
+
+- "Hmm, not quite. Let's try again!"
+
+---
+
+## ✋ Prompting to Drag the Object
+
+- "Now drag it over to me!"
+
+### ✅ Correct Dragging Feedback
+
+- "Thanks for bringing it! Let's do this again!"
+
+---
+
+## 🔚 End of Session
+
+- "That was so much fun. Bye-bye!"
+
+---
+
+## ⚙️ Optional Neutral System Sounds (Non-verbal feedback)
+
+### 🎵 Positive Sound Effects
+
+- Soft clap
+
+---
+
+## 📝 Notes for Voice Actor Recording
+
+- The voice actor is a 6 to 7 year old.
+- Use a **warm, playful, and clear tone**.
+- Speak **slowly and enthusiastically**.
+- **Avoid complex words** — clarity and encouragement are key.
+- Emphasize **emotion and friendliness** — especially when giving feedback.
