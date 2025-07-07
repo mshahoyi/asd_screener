@@ -74,25 +74,29 @@ This document outlines the step-by-step user flows for both researchers and chil
 
 ## Journey 6: The Child’s Game Session
 
-1. **Trial Start**:
-   - Character appears and introduces task.
-   - Game begins with **CL1 (eye gaze)** cue.
+1. **Game Introduction**:
+   - App displays a neutral character image without any game items.
+   - The character introduces the game to the child.
+
+2. **Trial Start**:
+   - Game items appear on the screen.
+   - Game begins with **CL1 (eye gaze)** cue, with the character looking towards the correct item.
    - **CL1 shown continuously** until correct selection or cue timeout.
    
-2. **Cue Progression**:
+3. **Cue Progression**:
    - If incorrect or no response → escalate cue:
      - **CL2**: Eye gaze + Head Turn
      - **CL3**: CL2 + Pointing
      - **CL4**: CL3 + Sparkle on Target
    - Timeouts between cues are configurable.
 
-3. **Child Selection**:
+4. **Child Selection**:
    - Once an object is selected:
      - Character acknowledges and gives **positive feedback**.
      - Prompts the child to **drag the object** to them.
      - Dragging completes the task and is also positively reinforced.
 
-4. **Difficulty Progression** (Updated Logic):
+5. **Difficulty Progression** (Updated Logic):
     - **Session begins in DL-I (2 objects per trial)**.
     - The system **upgrades to DL-II (4 objects)** if:
         - Child gets **1 correct response at CL1**, OR
@@ -100,13 +104,13 @@ This document outlines the step-by-step user flows for both researchers and chil
     - Once in **DL-II**, the app **remains at DL-II** until session ends — it does not downgrade.
     - Difficulty is managed by an internal **state machine**.
 
-5. **Session End**:
+6. **Session End**:
    - Session continues until:
      - Max session time (default 5 min) is reached, OR
      - Researcher exits manually.
    - Character thanks the child and ends on a friendly note.
 
-6. **Return**: App automatically navigates back to the participant detail screen or dashboard.
+7. **Return**: App automatically navigates back to the participant detail screen or dashboard.
 
 ---
 
