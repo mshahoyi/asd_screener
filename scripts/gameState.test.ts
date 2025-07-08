@@ -145,4 +145,43 @@ describe("gameMachine", () => {
     actor.send({type: "EXIT"});
     expect(actor.getSnapshot().value).toBe("sessionEnded");
   });
+
+  describe("sound tags", () => {
+    it('should have the "intro" sound tag in the introduction state', () => {
+      const actor = createActor(gameMachine).start();
+      expect(actor.getSnapshot().hasTag('sound:intro')).toBe(true);
+    });
+
+    it('should have the "looking" sound tag when cue level is 1', () => {
+      const actor = createAndStartGameActor();
+      expect(actor.getSnapshot().hasTag('sound:looking')).toBe(true);
+    });
+
+    it('should have the "pointing" sound tag when cue level is 3', () => {
+      const actor = createAndStartGameActor();
+      actor.send({ type: 'TIMEOUT' }); // cueLevel 2
+      actor.send({ type: 'TIMEOUT' }); // cueLevel 3
+      expect(actor.getSnapshot().hasTag('sound:pointing')).toBe(true);
+    });
+
+    it('should have the "shining" sound tag when cue level is 4', () => {
+      const actor = createAndStartGameActor();
+      actor.send({ type: 'TIMEOUT' }); // cueLevel 2
+      actor.send({ type: 'TIMEOUT' }); // cueLevel 3
+      actor.send({ type: 'TIMEOUT' }); // cueLevel 4
+      expect(actor.getSnapshot().hasTag('sound:shining')).toBe(true);
+    });
+
+    it('should have the "drag" sound tag when awaiting drag', () => {
+      const actor = createAndStartGameActor();
+      actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // Correct selection
+      expect(actor.getSnapshot().hasTag('sound:drag')).toBe(true);
+    });
+
+    it('should have the "bye" sound tag when the session ends', () => {
+      const actor = createAndStartGameActor();
+      actor.send({ type: 'EXIT' });
+      expect(actor.getSnapshot().hasTag('sound:bye')).toBe(true);
+    });
+  });
 });
