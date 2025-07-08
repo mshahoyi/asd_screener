@@ -1,9 +1,11 @@
 import React, { JSX } from 'react';
-import { View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Button, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useGame } from '@/scripts/GameContext';
 import { useSound } from '@/hooks/useSound';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
 // Import all assets dynamically
 type AssetKey = keyof typeof assets;
@@ -85,11 +87,79 @@ const getCharacterImage = (stateValue: string, cueLevel: number, correctItem: st
   }
 };
 
+const DraggableItem = ({ isCorrect, isGlowing, imageKey, onSelect, isAwaitingDrag, send }: any) => {
+  const { height, width } = useWindowDimensions();
+  const x = useSharedValue(0);
+  const y = useSharedValue(0);
+
+  const gesture = Gesture.Pan()
+    .enabled(isAwaitingDrag && isCorrect)
+    .onUpdate((event) => {
+      x.value = event.translationX;
+      y.value = event.translationY;
+    })
+    .onEnd((event) => {
+      const characterDropZone = {
+        minX: width / 2 - 75,
+        maxX: width / 2 + 75,
+        minY: height / 2 - 75,
+        maxY: height / 2 + 75,
+      };
+
+      console.log('character drop zone', characterDropZone);
+
+      // Note: The absolute coordinates are not directly available in the event.
+      // This logic assumes the item starts centered and calculates drop based on translation.
+      // A more robust solution might involve onLayout to get initial positions.
+      const dropX = width / 2 + event.translationX;
+      const dropY = height / 2 + event.translationY;
+
+      if (
+        dropX > characterDropZone.minX &&
+        dropX < characterDropZone.maxX &&
+        dropY > characterDropZone.minY &&
+        dropY < characterDropZone.maxY
+      ) {
+        send({ type: 'DRAG_SUCCESSFUL' });
+      } else {
+        x.value = withSpring(0);
+        y.value = withSpring(0);
+      }
+    });
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: x.value }, { translateY: y.value }],
+      zIndex: isAwaitingDrag && isCorrect ? 1 : 0,
+    };
+  });
+
+  return (
+    <GestureDetector gesture={gesture}>
+      <Animated.View style={animatedStyle}>
+        <TouchableOpacity
+          onPress={onSelect}
+          style={[styles.gameItemContainer, isGlowing && styles.glowingItem]}
+          testID={`game-item-${imageKey}`}
+          disabled={isAwaitingDrag}
+        >
+          <Image testID={`game-item-${imageKey}`} source={assets[imageKey]} style={styles.gameItem} contentFit="contain" />
+        </TouchableOpacity>
+      </Animated.View>
+    </GestureDetector>
+  );
+};
+
 // Helper to get game items based on difficulty and correct item
-const getGameItems = (difficultyLevel: number, correctItem: string, cueLevel: number, send: Function): React.ReactNode[] => {
+const getGameItems = (
+  difficultyLevel: number,
+  correctItem: string,
+  cueLevel: number,
+  send: Function,
+  isAwaitingDrag: boolean
+): React.ReactNode[] => {
   const items: JSX.Element[] = [];
   const imageKey: AssetKey = 'itemKettleBlue';
-  const itemSource = assets[imageKey]; // Using one item for simplicity for now
 
   const positions = difficultyLevel === 1 ? ['left', 'right'] : ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
@@ -98,14 +168,15 @@ const getGameItems = (difficultyLevel: number, correctItem: string, cueLevel: nu
     const isGlowing = cueLevel === 4 && isCorrect;
 
     items.push(
-      <TouchableOpacity
+      <DraggableItem
         key={position}
-        onPress={() => send({ type: 'SELECTION', selectedPosition: position })}
-        style={[styles.gameItemContainer, isGlowing && styles.glowingItem]}
-        testID={`game-item-${position}`}
-      >
-        <Image testID={`game-item-${imageKey}`} source={itemSource} style={styles.gameItem} contentFit="contain" />
-      </TouchableOpacity>
+        isCorrect={isCorrect}
+        isGlowing={isGlowing}
+        imageKey={imageKey}
+        onSelect={() => send({ type: 'SELECTION', selectedPosition: position })}
+        isAwaitingDrag={isAwaitingDrag}
+        send={send}
+      />
     );
   });
   return items;
@@ -116,11 +187,12 @@ export default function GameScreen() {
   const [state, send] = useGame();
   useSound();
 
+  const isAwaitingDrag = state.matches('awaitingDrag');
   const characterImageKey = getCharacterImage(state.value as string, state.context.cueLevel, state.context.correctItem);
-  const gameItems = getGameItems(state.context.difficultyLevel, state.context.correctItem, state.context.cueLevel, send);
+  const gameItems = getGameItems(state.context.difficultyLevel, state.context.correctItem, state.context.cueLevel, send, isAwaitingDrag);
 
   return (
-    <View style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
       <Text>Game Screen</Text>
       <Text>Difficulty: {state.context.difficultyLevel}</Text>
       <Text>Cue: {state.context.cueLevel}</Text>
@@ -133,19 +205,12 @@ export default function GameScreen() {
         contentFit="contain"
       />
 
-      {state.value !== 'introduction' && ( // Conditionally render items and drag buttons
+      {state.value !== 'introduction' && ( // Conditionally render items
         <View style={styles.itemsContainer}>{gameItems}</View>
       )}
 
-      {state.value !== 'introduction' && ( // Conditionally render drag buttons
-        <>
-          <Button title="Drag Successful" testID="drag-successful-button" onPress={() => send({ type: 'DRAG_SUCCESSFUL' })} />
-          <Button title="Drag Failed" testID="drag-failed-button" onPress={() => send({ type: 'DRAG_FAILED' })} />
-        </>
-      )}
-
       <Button title="End Session" onPress={() => router.back()} />
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
