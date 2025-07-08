@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useGame } from '@/scripts/GameContext';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { GameStateEmittedEvent } from '@/scripts/gameState';
 
 // Define a mapping from sound names to their file paths
 const soundFiles = {
@@ -49,14 +50,19 @@ export const useSound = () => {
       4: 'shining',
     };
 
-    const sub = actor.on('*', (emittedEvent) => {
+    const sub = actor.on('*', (emittedEvent: GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL'>) => {
       switch (emittedEvent.type) {
         case 'SELECTION':
-          if (emittedEvent.correctItem === emittedEvent.selectedPosition) {
+          const { correctItem, selectedPosition } = emittedEvent as GameStateEmittedEvent<'SELECTION'>;
+          if (correctItem === selectedPosition) {
             playSound('positiveTap', () => playSound('drag'));
           } else {
             playSound('negativeTap', () => playSound(cueNegativeSounds[actor.getSnapshot().context.cueLevel]));
           }
+          break;
+
+        case 'DRAG_SUCCESSFUL':
+          playSound('positiveDrag');
           break;
       }
     });

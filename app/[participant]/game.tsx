@@ -9,43 +9,43 @@ import { useSound } from '@/hooks/useSound';
 type AssetKey = keyof typeof assets;
 
 const assets = {
-  neutral: '@/assets/neutral.png',
-  openHands: '@/assets/open-hands.png',
-  faceBottomLeft: '@/assets/face-bottom-left.png',
-  faceBottomRight: '@/assets/face-bottom-right.png',
-  faceLeft: '@/assets/face-left.png',
-  faceRight: '@/assets/face-right.png',
-  faceTopLeft: '@/assets/face-top-left.png',
-  faceTopRight: '@/assets/face-top-right.png',
-  gazeBottomLeft: '@/assets/gaze-bottom-left.png',
-  gazeBottomRight: '@/assets/gaze-bottom-right.png',
-  gazeLeft: '@/assets/gaze-left.png',
-  gazeRight: '@/assets/gaze-right.png',
-  gazeTopLeft: '@/assets/gaze-top-left.png',
-  gazeTopRight: '@/assets/gaze-top-right.png',
-  pointBottomLeft: '@/assets/point-bottom-left.png',
-  pointBottomRight: '@/assets/point-bottom-right.png',
-  pointLeft: '@/assets/point-left.png',
-  pointRight: '@/assets/point-right.png',
-  pointTopLeft: '@/assets/point-top-left.png',
-  pointTopRight: '@/assets/point-top-right.png',
-  itemKettleBlue: '@/assets/item-kettle-blue.png',
-  itemKettleBronze: '@/assets/item-kettle-bronze.png',
-  itemKettleGray: '@/assets/item-kettle-gray.png',
-  itemKettleRed: '@/assets/item-kettle-red.png',
-  itemSocksCat: '@/assets/item-socks-cat.png',
-  itemSocksOrange: '@/assets/item-socks-orange.png',
-  itemSocksPink: '@/assets/item-socks-pink.png',
-  itemSocksStripes: '@/assets/item-socks-stripes.png',
+  neutral: require('@/assets/neutral.png'),
+  openHands: require('@/assets/open-hands.png'),
+  faceBottomLeft: require('@/assets/face-bottom-left.png'),
+  faceBottomRight: require('@/assets/face-bottom-right.png'),
+  faceLeft: require('@/assets/face-left.png'),
+  faceRight: require('@/assets/face-right.png'),
+  faceTopLeft: require('@/assets/face-top-left.png'),
+  faceTopRight: require('@/assets/face-top-right.png'),
+  gazeBottomLeft: require('@/assets/gaze-bottom-left.png'),
+  gazeBottomRight: require('@/assets/gaze-bottom-right.png'),
+  gazeLeft: require('@/assets/gaze-left.png'),
+  gazeRight: require('@/assets/gaze-right.png'),
+  gazeTopLeft: require('@/assets/gaze-top-left.png'),
+  gazeTopRight: require('@/assets/gaze-top-right.png'),
+  pointBottomLeft: require('@/assets/point-bottom-left.png'),
+  pointBottomRight: require('@/assets/point-bottom-right.png'),
+  pointLeft: require('@/assets/point-left.png'),
+  pointRight: require('@/assets/point-right.png'),
+  pointTopLeft: require('@/assets/point-top-left.png'),
+  pointTopRight: require('@/assets/point-top-right.png'),
+  itemKettleBlue: require('@/assets/item-kettle-blue.png'),
+  itemKettleBronze: require('@/assets/item-kettle-bronze.png'),
+  itemKettleGray: require('@/assets/item-kettle-gray.png'),
+  itemKettleRed: require('@/assets/item-kettle-red.png'),
+  itemSocksCat: require('@/assets/item-socks-cat.png'),
+  itemSocksOrange: require('@/assets/item-socks-orange.png'),
+  itemSocksPink: require('@/assets/item-socks-pink.png'),
+  itemSocksStripes: require('@/assets/item-socks-stripes.png'),
 };
 
 // Helper to get character image based on state, cue level, and correct item position
-const getCharacterImage = (stateValue: string, cueLevel: number, correctItem: string) => {
+const getCharacterImage = (stateValue: string, cueLevel: number, correctItem: string): AssetKey => {
   if (stateValue === 'introduction') {
-    return assets.neutral;
+    return 'neutral';
   }
   if (stateValue === 'awaitingDrag') {
-    return assets.openHands;
+    return 'openHands';
   }
 
   const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -73,22 +73,23 @@ const getCharacterImage = (stateValue: string, cueLevel: number, correctItem: st
 
   switch (cueLevel) {
     case 1:
-      return assets[`gaze${formattedDirection}` as AssetKey];
+      return `gaze${formattedDirection}` as AssetKey;
     case 2:
-      return assets[`face${formattedDirection}` as AssetKey];
+      return `face${formattedDirection}` as AssetKey;
     case 3:
-      return assets[`point${formattedDirection}` as AssetKey];
+      return `point${formattedDirection}` as AssetKey;
     case 4:
-      return assets.neutral; // Glow is on the item, character is neutral
+      return 'neutral'; // Glow is on the item, character is neutral
     default:
-      return assets.neutral;
+      return 'neutral';
   }
 };
 
 // Helper to get game items based on difficulty and correct item
 const getGameItems = (difficultyLevel: number, correctItem: string, cueLevel: number, send: Function): React.ReactNode[] => {
   const items: JSX.Element[] = [];
-  const itemSource = assets.itemKettleBlue; // Using one item for simplicity for now
+  const imageKey: AssetKey = 'itemKettleBlue';
+  const itemSource = assets[imageKey]; // Using one item for simplicity for now
 
   const positions = difficultyLevel === 1 ? ['left', 'right'] : ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
@@ -103,7 +104,7 @@ const getGameItems = (difficultyLevel: number, correctItem: string, cueLevel: nu
         style={[styles.gameItemContainer, isGlowing && styles.glowingItem]}
         testID={`game-item-${position}`}
       >
-        <Image source={itemSource} style={styles.gameItem} contentFit="contain" />
+        <Image testID={`game-item-${imageKey}`} source={itemSource} style={styles.gameItem} contentFit="contain" />
       </TouchableOpacity>
     );
   });
@@ -115,7 +116,7 @@ export default function GameScreen() {
   const [state, send] = useGame();
   useSound();
 
-  const characterImage = getCharacterImage(state.value as string, state.context.cueLevel, state.context.correctItem);
+  const characterImageKey = getCharacterImage(state.value as string, state.context.cueLevel, state.context.correctItem);
   const gameItems = getGameItems(state.context.difficultyLevel, state.context.correctItem, state.context.cueLevel, send);
 
   return (
@@ -125,7 +126,12 @@ export default function GameScreen() {
       <Text>Cue: {state.context.cueLevel}</Text>
       <Text>State: {state.value as string}</Text>
 
-      <Image source={characterImage} style={styles.characterImage} testID="character-image" contentFit="contain" />
+      <Image
+        testID={`character-image-${characterImageKey}`}
+        source={assets[characterImageKey]}
+        style={styles.characterImage}
+        contentFit="contain"
+      />
 
       {state.value !== 'introduction' && ( // Conditionally render items and drag buttons
         <View style={styles.itemsContainer}>{gameItems}</View>

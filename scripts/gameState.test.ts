@@ -1,4 +1,4 @@
-import { gameMachine } from './gameState';
+import { gameMachine, GameStateEmittedEvent } from './gameState';
 import { createActor } from 'xstate';
 
 describe('gameMachine', () => {
@@ -162,12 +162,24 @@ describe('gameMachine', () => {
 
     actor.on('SELECTION', (event) => {
       expect(event.type).toBe('SELECTION');
-      expect(event.selectedPosition).toBe('right');
-      expect(event.correctItem).toBe('left');
+      expect((event as GameStateEmittedEvent<'SELECTION'>).selectedPosition).toBe('right');
+      expect((event as GameStateEmittedEvent<'SELECTION'>).correctItem).toBe('left');
       expect(actor.getSnapshot().context.selectedPosition).toBe('right');
       done();
     });
 
     actor.send({ type: 'SELECTION', selectedPosition: 'right' });
-  }, 1000);
+  });
+
+  it('should emit a drag successful event when a drag is successful', (done) => {
+    const actor = createAndStartGameActor();
+
+    actor.on('DRAG_SUCCESSFUL', (event) => {
+      expect(event.type).toBe('DRAG_SUCCESSFUL');
+      done();
+    });
+
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' });
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+  });
 });

@@ -100,6 +100,16 @@ describe('useSound', () => {
     finishSound(rerender);
     expect(mockUseCallbackReturn).toHaveBeenNthCalledWith(7, 'shining');
   });
+
+  it('plays the right sound when dragging is successful', () => {
+    const { gameActor, rerender } = renderWithGameContext(() => useSound());
+
+    act(() => gameActor.send({ type: 'START_GAME' }));
+    act(() => gameActor.send({ type: 'SELECTION', selectedPosition: 'left' }));
+    act(() => gameActor.send({ type: 'DRAG_SUCCESSFUL' }));
+
+    expect(mockUseCallbackReturn).toHaveBeenLastCalledWith('positiveDrag');
+  });
 });
 
 const finishSound = (rerender: (...args: unknown[]) => unknown) => {

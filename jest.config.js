@@ -6,6 +6,7 @@
 const config = {
   moduleNameMapper: {
     '\\.(m4a|mp3)$': '<rootDir>/__mocks__/soundfile.ts',
+    '\\.(png|jpg|jpeg|gif|svg|webp)$': '<rootDir>/__mocks__/imagefile.ts',
   },
   // All imported modules in your tests should be mocked automatically
   // automock: false,

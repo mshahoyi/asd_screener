@@ -4,9 +4,16 @@ import { createMachine, assign, setup, emit } from 'xstate';
 const difficulty1Positions = ['left', 'right'];
 const difficulty2Positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
+export type GameStateEmittedEvent<T extends 'SELECTION' | 'DRAG_SUCCESSFUL'> = {
+  type: T;
+} & {
+  SELECTION: { selectedPosition: string; correctItem: string };
+  DRAG_SUCCESSFUL: {};
+}[T];
+
 export const gameMachine = setup({
   types: {
-    emitted: {} as { type: string; selectedPosition: string; correctItem: string },
+    emitted: {} as GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL'>,
   },
   actions: {
     updateDifficulty: assign(({ context }) => {
@@ -33,12 +40,12 @@ export const gameMachine = setup({
     incrementConsecutiveCorrectAtCL2: assign({ consecutiveCorrectAtCL2: ({ context }) => context.consecutiveCorrectAtCL2 + 1 }),
     escalateCueLevel: assign({ cueLevel: ({ context }) => Math.min(context.cueLevel + 1, 4) }),
     resetCueLevel: assign({ cueLevel: 1 }),
-    // @ts-ignore
     emitSelectionEvent: emit(({ event, context }) => ({
-      type: 'SELECTION',
+      type: 'SELECTION' as const,
       selectedPosition: context.selectedPosition,
       correctItem: context.correctItem,
     })),
+    emitDragSuccessfulEvent: emit(() => ({ type: 'DRAG_SUCCESSFUL' as const })),
   },
 }).createMachine({
   id: 'game',
@@ -94,6 +101,7 @@ export const gameMachine = setup({
             'updateDifficulty',
             'resetCueLevel',
             'assignCorrectItem', // Assign new item for next trial
+            'emitDragSuccessfulEvent',
           ],
         },
         DRAG_FAILED: {
