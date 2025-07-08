@@ -1,10 +1,13 @@
-import { createMachine, assign, setup } from 'xstate';
+import { createMachine, assign, setup, emit } from 'xstate';
 
 // Define possible positions for items based on difficulty level
 const difficulty1Positions = ['left', 'right'];
 const difficulty2Positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
 export const gameMachine = setup({
+  types: {
+    emitted: {} as { type: string; selectedPosition: string; correctItem: string },
+  },
   actions: {
     updateDifficulty: assign(({ context }) => {
       let newDifficulty = context.difficultyLevel;
@@ -22,11 +25,20 @@ export const gameMachine = setup({
       const randomIndex = Math.floor(Math.random() * availablePositions.length);
       return { correctItem: availablePositions[randomIndex] };
     }),
+    saveSelectedPosition: assign(({ event }) => {
+      return { selectedPosition: event.selectedPosition };
+    }),
     incrementTrialCount: assign({ trialCount: ({ context }) => context.trialCount + 1 }),
     resetConsecutiveCorrectAtCL2: assign({ consecutiveCorrectAtCL2: 0 }),
     incrementConsecutiveCorrectAtCL2: assign({ consecutiveCorrectAtCL2: ({ context }) => context.consecutiveCorrectAtCL2 + 1 }),
     escalateCueLevel: assign({ cueLevel: ({ context }) => Math.min(context.cueLevel + 1, 4) }),
     resetCueLevel: assign({ cueLevel: 1 }),
+    // @ts-ignore
+    emitSelectionEvent: emit(({ event, context }) => ({
+      type: 'SELECTION',
+      selectedPosition: context.selectedPosition,
+      correctItem: context.correctItem,
+    })),
   },
 }).createMachine({
   id: 'game',
@@ -37,6 +49,7 @@ export const gameMachine = setup({
     trialCount: 1,
     consecutiveCorrectAtCL2: 0,
     correctItem: '',
+    selectedPosition: '',
   },
   states: {
     introduction: {
@@ -53,11 +66,11 @@ export const gameMachine = setup({
           {
             guard: ({ context, event }) => event.selectedPosition === context.correctItem,
             target: 'awaitingDrag',
-            actions: 'resetCueLevel',
+            actions: ['resetCueLevel', 'saveSelectedPosition', 'emitSelectionEvent'],
           },
           {
             guard: ({ context, event }) => event.selectedPosition !== context.correctItem,
-            actions: ['escalateCueLevel', 'resetConsecutiveCorrectAtCL2'],
+            actions: ['escalateCueLevel', 'resetConsecutiveCorrectAtCL2', 'saveSelectedPosition', 'emitSelectionEvent'],
           },
         ],
         TIMEOUT: {
@@ -88,7 +101,9 @@ export const gameMachine = setup({
           actions: ['resetCueLevel', 'assignCorrectItem'], // Assign new item for next trial
         },
         // Ignore other selections while awaiting drag
-        SELECTION: {},
+        SELECTION: {
+          actions: ['saveSelectedPosition'],
+        },
         TIMEOUT: {},
       },
     },
