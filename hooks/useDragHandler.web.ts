@@ -35,7 +35,7 @@ export function useDragHandler({
   const checkCollision = React.useCallback(
     (deltaX: number, deltaY: number): boolean => {
       if (!characterBounds || !itemBounds) {
-        console.log('Missing bounds for collision detection:', { characterBounds, itemBounds });
+        console.debug('Missing bounds for collision detection:', { characterBounds, itemBounds });
         return false;
       }
 
@@ -59,9 +59,9 @@ export function useDragHandler({
         bottom: finalItemY + itemBounds.height,
       };
 
-      console.log('Web collision check:');
-      console.log('Character rectangle:', characterRect);
-      console.log('Item rectangle:', itemRect);
+      console.debug('Web collision check:');
+      console.debug('Character rectangle:', characterRect);
+      console.debug('Item rectangle:', itemRect);
 
       const isOverlapping = !(
         itemRect.right < characterRect.left ||
@@ -70,7 +70,7 @@ export function useDragHandler({
         itemRect.top > characterRect.bottom
       );
 
-      console.log('Web overlap result:', isOverlapping);
+      console.debug('Web overlap result:', isOverlapping);
       return isOverlapping;
     },
     [characterBounds, itemBounds, screenWidth, screenHeight]
@@ -79,13 +79,13 @@ export function useDragHandler({
   // Web drag handlers
   const handleWebMouseDown = React.useCallback(
     (event: MouseEvent | TouchEvent) => {
-      console.log('=== WEB MOUSE DOWN EVENT ===');
-      console.log('Event type:', event.type);
-      console.log('isAwaitingDrag:', isAwaitingDrag);
-      console.log('isCorrect:', isCorrect);
+      console.debug('=== WEB MOUSE DOWN EVENT ===');
+      console.debug('Event type:', event.type);
+      console.debug('isAwaitingDrag:', isAwaitingDrag);
+      console.debug('isCorrect:', isCorrect);
 
       if (!isAwaitingDrag || !isCorrect) {
-        console.log('Early return due to conditions');
+        console.debug('Early return due to conditions');
         return;
       }
 
@@ -97,20 +97,20 @@ export function useDragHandler({
       if ('touches' in event && event.touches.length > 0) {
         clientX = event.touches[0].clientX;
         clientY = event.touches[0].clientY;
-        console.log('Touch event detected:', { clientX, clientY });
+        console.debug('Touch event detected:', { clientX, clientY });
       } else if ('clientX' in event) {
         clientX = event.clientX;
         clientY = event.clientY;
-        console.log('Mouse event detected:', { clientX, clientY });
+        console.debug('Mouse event detected:', { clientX, clientY });
       } else {
-        console.log('No valid coordinates found in event');
+        console.debug('No valid coordinates found in event');
         return;
       }
 
       setIsDragging(true);
       setDragStart({ x: clientX, y: clientY });
-      console.log('Drag started successfully at:', { x: clientX, y: clientY });
-      console.log('=== END WEB MOUSE DOWN ===');
+      console.debug('Drag started successfully at:', { x: clientX, y: clientY });
+      console.debug('=== END WEB MOUSE DOWN ===');
     },
     [isAwaitingDrag, isCorrect]
   );
@@ -137,7 +137,7 @@ export function useDragHandler({
       x.value = deltaX;
       y.value = deltaY;
 
-      console.log('Web drag move - delta:', { deltaX, deltaY });
+      console.debug('Web drag move - delta:', { deltaX, deltaY });
     },
     [isDragging, dragStart, isAwaitingDrag, isCorrect, x, y]
   );
@@ -146,20 +146,20 @@ export function useDragHandler({
     (event: MouseEvent | TouchEvent) => {
       if (!isDragging || !dragStart || !isAwaitingDrag || !isCorrect) return;
 
-      console.log('=== WEB MOUSE UP EVENT ===');
+      console.debug('=== WEB MOUSE UP EVENT ===');
 
       let clientX: number, clientY: number;
 
       if ('changedTouches' in event && event.changedTouches.length > 0) {
         clientX = event.changedTouches[0].clientX;
         clientY = event.changedTouches[0].clientY;
-        console.log('Touch end detected:', { clientX, clientY });
+        console.debug('Touch end detected:', { clientX, clientY });
       } else if ('clientX' in event) {
         clientX = event.clientX;
         clientY = event.clientY;
-        console.log('Mouse up detected:', { clientX, clientY });
+        console.debug('Mouse up detected:', { clientX, clientY });
       } else {
-        console.log('No valid coordinates in mouse up event');
+        console.debug('No valid coordinates in mouse up event');
         clientX = dragStart.x;
         clientY = dragStart.y;
       }
@@ -167,14 +167,14 @@ export function useDragHandler({
       const deltaX = clientX - dragStart.x;
       const deltaY = clientY - dragStart.y;
 
-      console.log('Web drag ended with delta:', { deltaX, deltaY });
+      console.debug('Web drag ended with delta:', { deltaX, deltaY });
 
       // Check collision
       if (checkCollision(deltaX, deltaY)) {
-        console.log('Web drag successful!');
+        console.debug('Web drag successful!');
         onDragSuccess();
       } else {
-        console.log('Web drag failed');
+        console.debug('Web drag failed');
       }
 
       // Reset drag state
@@ -182,7 +182,7 @@ export function useDragHandler({
       setDragStart(null);
       x.value = withSpring(0);
       y.value = withSpring(0);
-      console.log('=== WEB MOUSE UP COMPLETE ===');
+      console.debug('=== WEB MOUSE UP COMPLETE ===');
     },
     [isDragging, dragStart, isAwaitingDrag, isCorrect, checkCollision, onDragSuccess, x, y]
   );
@@ -191,32 +191,32 @@ export function useDragHandler({
   React.useEffect(() => {
     if (!isAwaitingDrag || !isCorrect) return;
 
-    console.log('=== SETTING UP WEB EVENT LISTENERS ===');
-    console.log('itemRef.current:', itemRef.current);
+    console.debug('=== SETTING UP WEB EVENT LISTENERS ===');
+    console.debug('itemRef.current:', itemRef.current);
 
     const element = itemRef.current;
     if (!element) {
-      console.log('No element found to attach listeners');
+      console.debug('No element found to attach listeners');
       return;
     }
 
     let domNode = element;
     if (element._touchableNode) {
       domNode = element._touchableNode;
-      console.log('Using _touchableNode');
+      console.debug('Using _touchableNode');
     } else if (element._nativeTag) {
       domNode = element;
-      console.log('Using element directly');
+      console.debug('Using element directly');
     }
 
-    console.log('Attaching listeners to DOM node:', domNode);
+    console.debug('Attaching listeners to DOM node:', domNode);
 
     const handleMouseDown = (e: MouseEvent) => {
-      console.log('DOM mousedown event fired');
+      console.debug('DOM mousedown event fired');
       handleWebMouseDown(e);
     };
     const handleTouchStart = (e: TouchEvent) => {
-      console.log('DOM touchstart event fired');
+      console.debug('DOM touchstart event fired');
       handleWebMouseDown(e);
     };
 
@@ -224,7 +224,7 @@ export function useDragHandler({
     domNode.addEventListener('touchstart', handleTouchStart);
 
     return () => {
-      console.log('Removing web event listeners');
+      console.debug('Removing web event listeners');
       domNode.removeEventListener('mousedown', handleMouseDown);
       domNode.removeEventListener('touchstart', handleTouchStart);
     };
@@ -234,7 +234,7 @@ export function useDragHandler({
   React.useEffect(() => {
     if (!isDragging) return;
 
-    console.log('=== SETTING UP GLOBAL DRAG LISTENERS ===');
+    console.debug('=== SETTING UP GLOBAL DRAG LISTENERS ===');
 
     const handleGlobalMouseMove = (e: MouseEvent) => handleWebMouseMove(e);
     const handleGlobalMouseUp = (e: MouseEvent) => handleWebMouseUp(e);
@@ -247,7 +247,7 @@ export function useDragHandler({
     document.addEventListener('touchend', handleGlobalTouchEnd);
 
     return () => {
-      console.log('Removing global drag listeners');
+      console.debug('Removing global drag listeners');
       document.removeEventListener('mousemove', handleGlobalMouseMove);
       document.removeEventListener('mouseup', handleGlobalMouseUp);
       document.removeEventListener('touchmove', handleGlobalTouchMove);

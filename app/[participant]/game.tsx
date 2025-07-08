@@ -115,26 +115,26 @@ const DraggableItem = ({
   const [itemBounds, setItemBounds] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
   React.useEffect(() => {
-    console.log('=== DRAGGABLE ITEM STATE CHANGE ===');
-    console.log('DraggableItem state:', { isAwaitingDrag, isCorrect, imageKey, itemPosition });
-    console.log('Send function available:', typeof send);
-    console.log('Character bounds available:', !!characterBounds);
-    console.log('Item bounds available:', !!itemBounds);
-    console.log('=== END STATE CHANGE ===');
+    console.debug('=== DRAGGABLE ITEM STATE CHANGE ===');
+    console.debug('DraggableItem state:', { isAwaitingDrag, isCorrect, imageKey, itemPosition });
+    console.debug('Send function available:', typeof send);
+    console.debug('Character bounds available:', !!characterBounds);
+    console.debug('Item bounds available:', !!itemBounds);
+    console.debug('=== END STATE CHANGE ===');
   }, [isAwaitingDrag, isCorrect, imageKey, itemPosition, send, characterBounds, itemBounds]);
 
   // Handle drag success
   const handleDragSuccess = React.useCallback(() => {
-    console.log('=== DRAG SUCCESS HANDLER (JS THREAD) ===');
-    console.log('About to call send with DRAG_SUCCESSFUL');
+    console.debug('=== DRAG SUCCESS HANDLER (JS THREAD) ===');
+    console.debug('About to call send with DRAG_SUCCESSFUL');
     try {
       const result = send({ type: 'DRAG_SUCCESSFUL' });
-      console.log('Send result:', result);
-      console.log('DRAG_SUCCESSFUL event sent successfully');
+      console.debug('Send result:', result);
+      console.debug('DRAG_SUCCESSFUL event sent successfully');
     } catch (error) {
       console.error('Error in handleDragSuccess:', error);
     }
-    console.log('=== END DRAG SUCCESS HANDLER ===');
+    console.debug('=== END DRAG SUCCESS HANDLER ===');
   }, [send]);
 
   // Use platform-specific drag handler
@@ -154,10 +154,10 @@ const DraggableItem = ({
 
   const handleItemLayout = React.useCallback(
     (event: any) => {
-      console.log('=== ITEM LAYOUT CALCULATION ===');
+      console.debug('=== ITEM LAYOUT CALCULATION ===');
       const { width, height } = event.nativeEvent.layout;
-      console.log('Layout event:', { width, height });
-      console.log('Screen dimensions:', { screenWidth, screenHeight });
+      console.debug('Layout event:', { width, height });
+      console.debug('Screen dimensions:', { screenWidth, screenHeight });
 
       // Calculate position based on the percentage styles we're using
       let estimatedX = 0;
@@ -194,7 +194,7 @@ const DraggableItem = ({
 
       const bounds = { x: estimatedX, y: estimatedY, width: itemWidth, height: itemWidth };
       setItemBounds(bounds);
-      console.log('Item calculated bounds for', itemPosition, ':', bounds);
+      console.debug('Item calculated bounds for', itemPosition, ':', bounds);
     },
     [itemPosition, screenWidth, screenHeight]
   );
@@ -217,7 +217,7 @@ const DraggableItem = ({
             ref={itemRef}
             onPress={onSelect}
             style={[styles.gameItemTouchable, isGlowing && styles.glowingItem]}
-            testID={`game-item-${imageKey}`}
+            testID={`game-item-${itemPosition}`}
             disabled={isAwaitingDrag && !isWeb} // Don't disable on web since we handle drag differently
           >
             <Image testID={`game-item-${imageKey}`} source={assets[imageKey]} style={styles.gameItemImage} contentFit="contain" />
@@ -292,21 +292,21 @@ export default function GameScreen() {
 
   // Add effect to log state changes
   React.useEffect(() => {
-    console.log('=== GAME STATE CHANGE ===');
-    console.log('Current state:', state.value);
-    console.log('State context:', JSON.stringify(state.context));
-    console.log('State matches awaitingDrag:', state.matches('awaitingDrag'));
-    console.log('Send function type:', typeof send);
-    console.log('=== END GAME STATE CHANGE ===');
+    console.debug('=== GAME STATE CHANGE ===');
+    console.debug('Current state:', state.value);
+    console.debug('State context:', JSON.stringify(state.context));
+    console.debug('State matches awaitingDrag:', state.matches('awaitingDrag'));
+    console.debug('Send function type:', typeof send);
+    console.debug('=== END GAME STATE CHANGE ===');
   }, [state]);
 
   const handleCharacterLayout = React.useCallback((event: any) => {
-    console.log('=== CHARACTER LAYOUT ===');
+    console.debug('=== CHARACTER LAYOUT ===');
     const { x, y, width, height } = event.nativeEvent.layout;
     const bounds = { x, y, width, height };
     setCharacterBounds(bounds);
-    console.log('Character bounds set:', JSON.stringify(bounds));
-    console.log('=== END CHARACTER LAYOUT ===');
+    console.debug('Character bounds set:', JSON.stringify(bounds));
+    console.debug('=== END CHARACTER LAYOUT ===');
   }, []);
 
   const isAwaitingDrag = state.matches('awaitingDrag');

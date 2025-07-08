@@ -30,14 +30,17 @@ const renderWithGameContext = (ui: React.ReactElement) => {
 describe('GameScreen UI with Assets', () => {
   // Mock Math.random to control correct item assignment for tests
   let mockMathRandom: jest.SpyInstance;
+  let consoleDebugSpy: jest.SpyInstance;
 
   beforeEach(() => {
     // Default mock for Math.random to return a value that results in 'left' for DL1
     mockMathRandom = jest.spyOn(Math, 'random').mockReturnValue(0.1);
+    consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation(() => {});
   });
 
   afterEach(() => {
     mockMathRandom.mockRestore();
+    consoleDebugSpy.mockRestore();
   });
 
   it('should display the neutral character in introduction state initially', () => {
@@ -86,7 +89,8 @@ describe('GameScreen UI with Assets', () => {
     act(() => gameActor.send({ type: 'START_GAME' }));
     expect(screen.getByTestId('character-image-gazeLeft')).toBeTruthy(); // Wait for initial transition
     fireEvent.press(screen.getByTestId('game-item-left'));
-    fireEvent.press(screen.getByTestId('drag-successful-button')); // This should transition to DL2
+    act(() => gameActor.send({ type: 'DRAG_SUCCESSFUL' }));
+
     expect(screen.getAllByTestId('game-item-top-left').length).toBe(1);
     expect(screen.getAllByTestId('game-item-top-right').length).toBe(1);
     expect(screen.getAllByTestId('game-item-bottom-left').length).toBe(1);

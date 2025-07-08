@@ -21,7 +21,7 @@ export function useDragHandler({
     (translationX: number, translationY: number): boolean => {
       'worklet';
       if (!characterBounds || !itemBounds) {
-        console.log('Missing bounds data');
+        console.debug('Missing bounds data');
         return false;
       }
 
@@ -47,8 +47,8 @@ export function useDragHandler({
         bottom: finalItemY + itemBounds.height,
       };
 
-      console.log('Character rectangle:', characterRect);
-      console.log('Item rectangle:', itemRect);
+      console.debug('Character rectangle:', characterRect);
+      console.debug('Item rectangle:', itemRect);
 
       const isOverlapping = !(
         itemRect.right < characterRect.left ||
@@ -57,7 +57,7 @@ export function useDragHandler({
         itemRect.top > characterRect.bottom
       );
 
-      console.log('Rectangle overlap check:', isOverlapping);
+      console.debug('Rectangle overlap check:', isOverlapping);
       return isOverlapping;
     },
     [characterBounds, itemBounds, screenWidth, screenHeight]
@@ -68,7 +68,7 @@ export function useDragHandler({
       Gesture.Pan()
         .enabled(isAwaitingDrag && isCorrect)
         .onBegin(() => {
-          console.log('Native gesture began for item:', imageKey, 'isCorrect:', isCorrect, 'position:', itemPosition);
+          console.debug('Native gesture began for item:', imageKey, 'isCorrect:', isCorrect, 'position:', itemPosition);
         })
         .onUpdate((event) => {
           x.value = event.translationX;
@@ -77,14 +77,14 @@ export function useDragHandler({
         .onEnd((event) => {
           'worklet';
           try {
-            console.log('=== NATIVE GESTURE END START (WORKLET) ===');
-            console.log('Gesture ended:', event.translationX, event.translationY);
-            console.log('isCorrect:', isCorrect);
-            console.log('imageKey:', imageKey);
-            console.log('itemPosition:', itemPosition);
+            console.debug('=== NATIVE GESTURE END START (WORKLET) ===');
+            console.debug('Gesture ended:', event.translationX, event.translationY);
+            console.debug('isCorrect:', isCorrect);
+            console.debug('imageKey:', imageKey);
+            console.debug('itemPosition:', itemPosition);
 
             if (!characterBounds || !itemBounds) {
-              console.log('Missing bounds data');
+              console.debug('Missing bounds data');
               x.value = withSpring(0);
               y.value = withSpring(0);
               return;
@@ -93,20 +93,20 @@ export function useDragHandler({
             const isOverlapping = checkCollision(event.translationX, event.translationY);
 
             if (isOverlapping) {
-              console.log('Native drag successful! Item overlaps with character image');
+              console.debug('Native drag successful! Item overlaps with character image');
               runOnJS(onDragSuccess)();
             } else {
-              console.log('Native drag failed, item does not overlap with character');
+              console.debug('Native drag failed, item does not overlap with character');
             }
 
             // Always reset position
-            console.log('Resetting position with spring animation...');
+            console.debug('Resetting position with spring animation...');
             x.value = withSpring(0);
             y.value = withSpring(0);
-            console.log('=== NATIVE GESTURE END SUCCESS (WORKLET) ===');
+            console.debug('=== NATIVE GESTURE END SUCCESS (WORKLET) ===');
           } catch (error) {
-            console.log('=== NATIVE GESTURE END ERROR (WORKLET) ===');
-            console.log('Error in gesture onEnd:', error);
+            console.debug('=== NATIVE GESTURE END ERROR (WORKLET) ===');
+            console.debug('Error in gesture onEnd:', error);
             x.value = withSpring(0);
             y.value = withSpring(0);
           }
