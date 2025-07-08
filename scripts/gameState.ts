@@ -22,7 +22,7 @@ export const gameMachine = setup({
     }),
     assignCorrectItem: assign(({ context }) => {
       const availablePositions = context.difficultyLevel === 1 ? difficulty1Positions : difficulty2Positions;
-      const randomIndex = Math.floor(Math.random() * availablePositions.length);
+      const randomIndex = getRandomItemIndex(availablePositions.length);
       return { correctItem: availablePositions[randomIndex] };
     }),
     saveSelectedPosition: assign(({ event }) => {
@@ -48,7 +48,7 @@ export const gameMachine = setup({
     cueLevel: 1,
     trialCount: 1,
     consecutiveCorrectAtCL2: 0,
-    correctItem: '',
+    correctItem: 'left',
     selectedPosition: '',
   },
   states: {
@@ -112,3 +112,7 @@ export const gameMachine = setup({
     },
   },
 });
+
+function getRandomItemIndex(positionsLength: number) {
+  return Math.floor(Math.random() * positionsLength);
+}

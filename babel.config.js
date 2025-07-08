@@ -1,6 +1,18 @@
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: ["babel-preset-expo", "@babel/preset-typescript"],
+    presets: ['babel-preset-expo', '@babel/preset-typescript'],
+    plugins: [
+      [
+        'module-resolver',
+        {
+          alias: {
+            '@/scripts': './scripts',
+            '@/assets': './assets',
+            '@/hooks': './hooks',
+          },
+        },
+      ],
+    ],
   };
 };

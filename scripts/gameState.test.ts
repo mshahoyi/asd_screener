@@ -24,6 +24,7 @@ describe('gameMachine', () => {
   it('should start in the introduction state', () => {
     const actor = createActor(gameMachine).start();
     expect(actor.getSnapshot().value).toBe('introduction');
+    expect(actor.getSnapshot().context.correctItem).toBe('left');
   });
 
   it('should transition from introduction to presentingTrial on START_GAME event', () => {

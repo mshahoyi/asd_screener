@@ -103,7 +103,7 @@ const getGameItems = (difficultyLevel: number, correctItem: string, cueLevel: nu
         style={[styles.gameItemContainer, isGlowing && styles.glowingItem]}
         testID={`game-item-${position}`}
       >
-        <Image source={itemSource} style={styles.gameItem} />
+        <Image source={itemSource} style={styles.gameItem} contentFit="contain" />
       </TouchableOpacity>
     );
   });
@@ -125,7 +125,7 @@ export default function GameScreen() {
       <Text>Cue: {state.context.cueLevel}</Text>
       <Text>State: {state.value as string}</Text>
 
-      <Image source={characterImage} style={styles.characterImage} testID="character-image" />
+      <Image source={characterImage} style={styles.characterImage} testID="character-image" contentFit="contain" />
 
       {state.value !== 'introduction' && ( // Conditionally render items and drag buttons
         <View style={styles.itemsContainer}>{gameItems}</View>
