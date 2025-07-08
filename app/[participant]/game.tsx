@@ -113,6 +113,13 @@ const DraggableItem = ({
   const y = useSharedValue(0);
   const [itemBounds, setItemBounds] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
+  // Add state for web drag handling
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [dragStart, setDragStart] = React.useState<{ x: number; y: number } | null>(null);
+
+  // Add ref to access the DOM element directly
+  const itemRef = React.useRef<any>(null);
+
   React.useEffect(() => {
     console.log('=== DRAGGABLE ITEM STATE CHANGE ===');
     console.log('DraggableItem state:', { isAwaitingDrag, isCorrect, imageKey, itemPosition });
@@ -136,6 +143,244 @@ const DraggableItem = ({
     }
     console.log('=== END DRAG SUCCESS HANDLER ===');
   }, [send]);
+
+  // Check if we're on web
+  const isWeb = typeof window !== 'undefined' && window.document;
+
+  // Web-specific drag handlers with extensive logging
+  const handleWebMouseDown = React.useCallback(
+    (event: MouseEvent | TouchEvent) => {
+      console.log('=== WEB MOUSE DOWN EVENT ===');
+      console.log('Event type:', event.type);
+      console.log('Event object:', event);
+      console.log('isWeb:', isWeb);
+      console.log('isAwaitingDrag:', isAwaitingDrag);
+      console.log('isCorrect:', isCorrect);
+
+      if (!isWeb || !isAwaitingDrag || !isCorrect) {
+        console.log('Early return due to conditions');
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      let clientX: number, clientY: number;
+
+      if ('touches' in event && event.touches.length > 0) {
+        // Touch event
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+        console.log('Touch event detected:', { clientX, clientY });
+      } else if ('clientX' in event) {
+        // Mouse event
+        clientX = event.clientX;
+        clientY = event.clientY;
+        console.log('Mouse event detected:', { clientX, clientY });
+      } else {
+        console.log('No valid coordinates found in event');
+        return;
+      }
+
+      setIsDragging(true);
+      setDragStart({ x: clientX, y: clientY });
+      console.log('Drag started successfully at:', { x: clientX, y: clientY });
+      console.log('=== END WEB MOUSE DOWN ===');
+    },
+    [isWeb, isAwaitingDrag, isCorrect]
+  );
+
+  const handleWebMouseMove = React.useCallback(
+    (event: MouseEvent | TouchEvent) => {
+      if (!isWeb || !isDragging || !dragStart || !isAwaitingDrag || !isCorrect) return;
+
+      let clientX: number, clientY: number;
+
+      if ('touches' in event && event.touches.length > 0) {
+        clientX = event.touches[0].clientX;
+        clientY = event.touches[0].clientY;
+      } else if ('clientX' in event) {
+        clientX = event.clientX;
+        clientY = event.clientY;
+      } else {
+        return;
+      }
+
+      const deltaX = clientX - dragStart.x;
+      const deltaY = clientY - dragStart.y;
+
+      x.value = deltaX;
+      y.value = deltaY;
+
+      console.log('Web drag move - delta:', { deltaX, deltaY }, 'from', { clientX, clientY }, 'start', dragStart);
+    },
+    [isWeb, isDragging, dragStart, isAwaitingDrag, isCorrect, x, y]
+  );
+
+  const handleWebMouseUp = React.useCallback(
+    (event: MouseEvent | TouchEvent) => {
+      if (!isWeb || !isDragging || !dragStart || !isAwaitingDrag || !isCorrect) return;
+
+      console.log('=== WEB MOUSE UP EVENT ===');
+
+      let clientX: number, clientY: number;
+
+      if ('changedTouches' in event && event.changedTouches.length > 0) {
+        clientX = event.changedTouches[0].clientX;
+        clientY = event.changedTouches[0].clientY;
+        console.log('Touch end detected:', { clientX, clientY });
+      } else if ('clientX' in event) {
+        clientX = event.clientX;
+        clientY = event.clientY;
+        console.log('Mouse up detected:', { clientX, clientY });
+      } else {
+        console.log('No valid coordinates in mouse up event');
+        clientX = dragStart.x;
+        clientY = dragStart.y;
+      }
+
+      const deltaX = clientX - dragStart.x;
+      const deltaY = clientY - dragStart.y;
+
+      console.log('Web drag ended with delta:', { deltaX, deltaY });
+
+      // Perform collision detection
+      if (characterBounds && itemBounds) {
+        const finalItemX = itemBounds.x + deltaX;
+        const finalItemY = itemBounds.y + deltaY;
+
+        const characterAbsoluteX = screenWidth * 0.2 + characterBounds.x;
+        const characterAbsoluteY = screenHeight * 0.2 + characterBounds.y;
+
+        const characterRect = {
+          left: characterAbsoluteX,
+          top: characterAbsoluteY,
+          right: characterAbsoluteX + characterBounds.width,
+          bottom: characterAbsoluteY + characterBounds.height,
+        };
+
+        const itemRect = {
+          left: finalItemX,
+          top: finalItemY,
+          right: finalItemX + itemBounds.width,
+          bottom: finalItemY + itemBounds.height,
+        };
+
+        console.log('Web collision check:');
+        console.log('Character rectangle:', characterRect);
+        console.log('Item rectangle:', itemRect);
+
+        const isOverlapping = !(
+          itemRect.right < characterRect.left ||
+          itemRect.left > characterRect.right ||
+          itemRect.bottom < characterRect.top ||
+          itemRect.top > characterRect.bottom
+        );
+
+        console.log('Web overlap result:', isOverlapping);
+
+        if (isOverlapping) {
+          console.log('Web drag successful!');
+          handleDragSuccess();
+        } else {
+          console.log('Web drag failed');
+        }
+      } else {
+        console.log('Missing bounds for collision detection:', { characterBounds, itemBounds });
+      }
+
+      // Reset drag state
+      setIsDragging(false);
+      setDragStart(null);
+      x.value = withSpring(0);
+      y.value = withSpring(0);
+      console.log('=== WEB MOUSE UP COMPLETE ===');
+    },
+    [
+      isWeb,
+      isDragging,
+      dragStart,
+      isAwaitingDrag,
+      isCorrect,
+      characterBounds,
+      itemBounds,
+      screenWidth,
+      screenHeight,
+      handleDragSuccess,
+      x,
+      y,
+    ]
+  );
+
+  // Add DOM event listeners for web
+  React.useEffect(() => {
+    if (!isWeb || !isAwaitingDrag || !isCorrect) return;
+
+    console.log('=== SETTING UP WEB EVENT LISTENERS ===');
+    console.log('itemRef.current:', itemRef.current);
+
+    const element = itemRef.current;
+    if (!element) {
+      console.log('No element found to attach listeners');
+      return;
+    }
+
+    // Get the actual DOM node
+    let domNode = element;
+    if (element._touchableNode) {
+      domNode = element._touchableNode;
+      console.log('Using _touchableNode');
+    } else if (element._nativeTag) {
+      // Try to find the DOM node through React Native Web
+      domNode = element;
+      console.log('Using element directly');
+    }
+
+    console.log('Attaching listeners to DOM node:', domNode);
+
+    const handleMouseDown = (e: MouseEvent) => {
+      console.log('DOM mousedown event fired');
+      handleWebMouseDown(e);
+    };
+    const handleTouchStart = (e: TouchEvent) => {
+      console.log('DOM touchstart event fired');
+      handleWebMouseDown(e);
+    };
+
+    domNode.addEventListener('mousedown', handleMouseDown);
+    domNode.addEventListener('touchstart', handleTouchStart);
+
+    return () => {
+      console.log('Removing web event listeners');
+      domNode.removeEventListener('mousedown', handleMouseDown);
+      domNode.removeEventListener('touchstart', handleTouchStart);
+    };
+  }, [isWeb, isAwaitingDrag, isCorrect, handleWebMouseDown]);
+
+  // Add global event listeners for move and up events
+  React.useEffect(() => {
+    if (!isWeb || !isDragging) return;
+
+    console.log('=== SETTING UP GLOBAL DRAG LISTENERS ===');
+
+    const handleGlobalMouseMove = (e: MouseEvent) => handleWebMouseMove(e);
+    const handleGlobalMouseUp = (e: MouseEvent) => handleWebMouseUp(e);
+    const handleGlobalTouchMove = (e: TouchEvent) => handleWebMouseMove(e);
+    const handleGlobalTouchEnd = (e: TouchEvent) => handleWebMouseUp(e);
+
+    document.addEventListener('mousemove', handleGlobalMouseMove);
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    document.addEventListener('touchmove', handleGlobalTouchMove);
+    document.addEventListener('touchend', handleGlobalTouchEnd);
+
+    return () => {
+      console.log('Removing global drag listeners');
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('touchmove', handleGlobalTouchMove);
+      document.removeEventListener('touchend', handleGlobalTouchEnd);
+    };
+  }, [isWeb, isDragging, handleWebMouseMove, handleWebMouseUp]);
 
   const handleItemLayout = React.useCallback(
     (event: any) => {
@@ -185,9 +430,9 @@ const DraggableItem = ({
   );
 
   const gesture = Gesture.Pan()
-    .enabled(isAwaitingDrag && isCorrect)
+    .enabled(isAwaitingDrag && isCorrect && !isWeb) // Disable on web, use mouse events instead
     .onBegin(() => {
-      console.log('Gesture began for item:', imageKey, 'isCorrect:', isCorrect, 'position:', itemPosition);
+      console.log('Native gesture began for item:', imageKey, 'isCorrect:', isCorrect, 'position:', itemPosition);
     })
     .onUpdate((event) => {
       x.value = event.translationX;
@@ -196,7 +441,7 @@ const DraggableItem = ({
     .onEnd((event) => {
       'worklet';
       try {
-        console.log('=== GESTURE END START (WORKLET) ===');
+        console.log('=== NATIVE GESTURE END START (WORKLET) ===');
         console.log('Gesture ended:', event.translationX, event.translationY);
         console.log('isCorrect:', isCorrect);
         console.log('imageKey:', imageKey);
@@ -221,38 +466,50 @@ const DraggableItem = ({
         const finalItemY = itemBounds.y + event.translationY;
         console.log('Final item position:', { x: finalItemX, y: finalItemY });
 
-        // Character center point (remember character bounds are relative to its container)
+        // Character absolute bounds (remember character bounds are relative to its container)
         // Character container is at 20% from top, 20% from left, so we need to adjust
         const characterAbsoluteX = screenWidth * 0.2 + characterBounds.x;
         const characterAbsoluteY = screenHeight * 0.2 + characterBounds.y;
-        const characterCenterX = characterAbsoluteX + characterBounds.width / 2;
-        const characterCenterY = characterAbsoluteY + characterBounds.height / 2;
         console.log('Character absolute position:', { x: characterAbsoluteX, y: characterAbsoluteY });
-        console.log('Character center calculated:', { x: characterCenterX, y: characterCenterY });
 
-        // Calculate distance from item center to character center
-        const itemCenterX = finalItemX + itemBounds.width / 2;
-        const itemCenterY = finalItemY + itemBounds.height / 2;
-        console.log('Item center calculated:', { x: itemCenterX, y: itemCenterY });
+        // Define character rectangle
+        const characterRect = {
+          left: characterAbsoluteX,
+          top: characterAbsoluteY,
+          right: characterAbsoluteX + characterBounds.width,
+          bottom: characterAbsoluteY + characterBounds.height,
+        };
 
-        const distance = Math.sqrt(Math.pow(itemCenterX - characterCenterX, 2) + Math.pow(itemCenterY - characterCenterY, 2));
+        // Define item rectangle at its final position
+        const itemRect = {
+          left: finalItemX,
+          top: finalItemY,
+          right: finalItemX + itemBounds.width,
+          bottom: finalItemY + itemBounds.height,
+        };
 
-        // Consider it a successful drop if within reasonable distance
-        const dropThreshold = 120; // pixels - increased for easier dropping
-        const isSuccessfulDrop = distance < dropThreshold;
+        console.log('Character rectangle:', characterRect);
+        console.log('Item rectangle:', itemRect);
 
-        console.log('Drop check:');
-        console.log('Item center:', { x: itemCenterX, y: itemCenterY });
-        console.log('Character center:', { x: characterCenterX, y: characterCenterY });
-        console.log('Distance:', distance, 'Threshold:', dropThreshold);
-        console.log('Is successful:', isSuccessfulDrop);
+        // Check if rectangles overlap (collision detection)
+        const isOverlapping = !(
+          (
+            itemRect.right < characterRect.left || // Item is to the left of character
+            itemRect.left > characterRect.right || // Item is to the right of character
+            itemRect.bottom < characterRect.top || // Item is above character
+            itemRect.top > characterRect.bottom
+          ) // Item is below character
+        );
 
-        if (isSuccessfulDrop) {
-          console.log('Drag successful! About to call JS function...');
+        console.log('Rectangle overlap check:');
+        console.log('Is overlapping:', isOverlapping);
+
+        if (isOverlapping) {
+          console.log('Native drag successful! Item overlaps with character image');
           // Use runOnJS to call the JavaScript function from the worklet
           runOnJS(handleDragSuccess)();
         } else {
-          console.log('Drag failed, returning to position');
+          console.log('Native drag failed, item does not overlap with character');
         }
 
         // Always reset position
@@ -260,13 +517,13 @@ const DraggableItem = ({
         x.value = withSpring(0);
         y.value = withSpring(0);
         console.log('Position reset completed');
-        console.log('=== GESTURE END SUCCESS (WORKLET) ===');
+        console.log('=== NATIVE GESTURE END SUCCESS (WORKLET) ===');
       } catch (error) {
-        console.log('=== GESTURE END ERROR (WORKLET) ===');
+        console.log('=== NATIVE GESTURE END ERROR (WORKLET) ===');
         console.log('Error in gesture onEnd:', error);
         x.value = withSpring(0);
         y.value = withSpring(0);
-        console.log('=== GESTURE END ERROR RECOVERY (WORKLET) ===');
+        console.log('=== NATIVE GESTURE END ERROR RECOVERY (WORKLET) ===');
       }
     });
 
@@ -282,10 +539,11 @@ const DraggableItem = ({
       <GestureDetector gesture={gesture}>
         <Animated.View style={[animatedStyle, { height: '100%', width: '100%' }]}>
           <TouchableOpacity
+            ref={itemRef}
             onPress={onSelect}
             style={[styles.gameItemTouchable, isGlowing && styles.glowingItem]}
             testID={`game-item-${imageKey}`}
-            disabled={isAwaitingDrag}
+            disabled={isAwaitingDrag && !isWeb} // Don't disable on web since we handle drag differently
           >
             <Image testID={`game-item-${imageKey}`} source={assets[imageKey]} style={styles.gameItemImage} contentFit="contain" />
           </TouchableOpacity>
@@ -404,6 +662,13 @@ export default function GameScreen() {
         />
       </View>
 
+      {/* Drop zone indicator - only visible during drag state */}
+      {isAwaitingDrag && (
+        <View style={styles.dropZoneIndicator}>
+          <Text style={styles.dropZoneText}>Drop Here</Text>
+        </View>
+      )}
+
       {/* Items positioned around character */}
       {state.value !== 'introduction' && <View style={styles.gameArea}>{gameItems}</View>}
 
@@ -436,6 +701,31 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
+  },
+  dropZoneIndicator: {
+    position: 'absolute',
+    top: '20%',
+    left: '20%',
+    width: '60%',
+    height: '60%',
+    backgroundColor: 'rgba(128, 128, 128, 0.3)', // Faint gray with transparency
+    borderWidth: 2,
+    borderColor: 'rgba(128, 128, 128, 0.5)',
+    borderStyle: 'dashed',
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 5, // Above character but below dragged items
+  },
+  dropZoneText: {
+    color: 'rgba(128, 128, 128, 0.8)',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   gameArea: {
     position: 'absolute',
