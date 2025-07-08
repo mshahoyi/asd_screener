@@ -2,7 +2,7 @@ import React, { JSX } from "react";
 import { View, Text, Button, StyleSheet, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useGame } from "@/src/GameContext";
+import { useGame } from "@/scripts/GameContext";
 
 // Import all assets dynamically
 type AssetKey = keyof typeof assets;

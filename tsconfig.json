@@ -4,22 +4,11 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/scripts/*": [
-        "./scripts/*"
-      ],
-      "@/assets/*": [
-        "./assets/*"
-      ],
-      "@/src/*": [
-        "./src/*"
-      ]
+      "@/scripts/*": ["./scripts/*"],
+      "@/assets/*": ["./assets/*"],
+      "@/hooks/*": ["./hooks/*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
 }

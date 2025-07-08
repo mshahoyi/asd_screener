@@ -1,5 +1,5 @@
 import { gameMachine } from "@/scripts/gameState";
-import { GameProvider } from "@/src/GameContext";
+import { GameProvider } from "@/scripts/GameContext";
 import { Stack } from "expo-router";
 
 export default function ParticipantLayout() {

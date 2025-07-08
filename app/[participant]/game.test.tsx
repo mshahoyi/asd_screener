@@ -7,7 +7,7 @@ import {
   act,
 } from "@testing-library/react-native";
 import GameScreen from "./game";
-import { GameProvider } from "@/src/GameContext";
+import { GameProvider } from "@/scripts/GameContext";
 import { createActor } from "xstate";
 import { gameMachine } from "@/scripts/gameState";
 
