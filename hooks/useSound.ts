@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-import { Audio } from "expo-av";
-import { AVPlaybackStatus } from "expo-av/build/AV";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useGame } from "@/scripts/GameContext";
+import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 
 // Define a mapping from sound names to their file paths
 const soundFiles = {
@@ -20,15 +19,27 @@ export type SoundName = keyof typeof soundFiles;
 
 export const useSound = () => {
   const { send, state } = useGame();
+  const player = useAudioPlayer(soundFiles.intro);
+  const status = useAudioPlayerStatus(player);
+  const callback = useRef<() => unknown>(null);
 
   useEffect(() => {
-    Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: false,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
-    });
+    if (status.didJustFinish) callback.current?.();
+  }, [status.didJustFinish]);
+
+  const playSound = useCallback(
+    (soundName: SoundName, cb?: () => unknown) => {
+      player.pause();
+      player.replace(soundFiles[soundName]);
+      player.seekTo(0);
+      player.play();
+      callback.current = cb || null;
+    },
+    [player, soundFiles]
+  );
+
+  useEffect(() => {
+    playSound("intro", () => send({ type: "START_GAME" }));
   }, []);
 
   return {};

@@ -3,6 +3,7 @@ import { View, Text, Button, StyleSheet, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useGame } from "@/scripts/GameContext";
+import { useSound } from "@/hooks/useSound";
 
 // Import all assets dynamically
 type AssetKey = keyof typeof assets;
@@ -124,6 +125,7 @@ const getGameItems = (
 export default function GameScreen() {
   const router = useRouter();
   const { state, send } = useGame();
+  useSound();
 
   const characterImage = getCharacterImage(
     state.value as string,
