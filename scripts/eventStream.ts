@@ -1,7 +1,7 @@
 import { Subject } from 'rxjs';
 
 export type Event = {
-  event: string;
+  name: string;
   participantId: string;
   properties?: unknown;
   timestamp: number;
