@@ -4,11 +4,11 @@ import { Button, Card, Text } from 'react-native-paper';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { getParticipants, NewParticipant, Participant, startGame } from '@/db/controller';
+import { getParticipants, NewParticipant, Participant, ParticipantWithCounts, startGame } from '@/db/controller';
 import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 
 export default function ResearcherDashboard() {
-  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [participants, setParticipants] = useState<ParticipantWithCounts[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -28,20 +28,35 @@ export default function ResearcherDashboard() {
 
   useRefreshOnFocus(loadParticipants);
 
-  const renderItem = ({ item }: { item: Participant }) => (
+  const renderLabelValue = useCallback(
+    (label: string, value: string | null) => (
+      <Text>
+        <Text variant="labelLarge" style={{ fontWeight: 'bold' }}>
+          {label}:
+        </Text>{' '}
+        {value}
+      </Text>
+    ),
+    []
+  );
+
+  const renderItem = ({ item }: { item: ParticipantWithCounts }) => (
     <Card style={styles.card} onPress={() => router.push(`/${item.id}/`)}>
       <Card.Title title={`Participant: ${item.anonymousId}`} />
       <Card.Content>
-        <Text>Age: {item.age}</Text>
-        <Text>Gender: {item.gender}</Text>
-        <Text>Created At: {item.createdAt.toLocaleString()}</Text>
+        {renderLabelValue('Gender', item.gender)}
+        {renderLabelValue('Created At', item.createdAt.toLocaleString())}
+        {renderLabelValue('Condition', item.condition ?? 'N/A')}
+        {!!item.note && renderLabelValue('Note', item.note)}
+        {renderLabelValue('Games', item.gameCount.toString())}
+        {renderLabelValue('Events', item.eventCount.toString())}
       </Card.Content>
       <Card.Actions>
         <Button
           mode="contained"
           onPress={() =>
             startGame(item.id)
-              .then(() => router.push(`/${item.id}/game`))
+              .then((game) => router.push(`/${item.id}/game/${game[0].id}`))
               .catch(alert)
           }
         >
@@ -73,7 +88,7 @@ export default function ResearcherDashboard() {
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.list}
-          columnWrapperStyle={{ backgroundColor: 'orange', gap: 12 }}
+          columnWrapperStyle={{ gap: 12 }}
           ListEmptyComponent={<Text>No participants found</Text>}
         />
       </View>
@@ -87,7 +102,6 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 12,
-    backgroundColor: 'red',
   },
   card: {
     marginVertical: 8,

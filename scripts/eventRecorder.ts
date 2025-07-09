@@ -5,8 +5,8 @@ import { gameEvents } from '../db/schema';
 event$.subscribe((event) => {
   db.insert(gameEvents)
     .values({
-      name: event.name as string,
-      gameId: 123,
+      name: event.name,
+      gameId: event.gameId,
       participantId: event.participantId,
       timestamp: new Date(event.timestamp),
       properties: event.properties,

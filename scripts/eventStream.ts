@@ -1,10 +1,11 @@
 import { Subject } from 'rxjs';
 
-export type Event = {
+export type GameEvent = {
   name: string;
-  participantId: string;
+  participantId: number;
+  gameId: number;
   properties?: unknown;
   timestamp: number;
 };
 
-export const event$ = new Subject<Event>();
+export const event$ = new Subject<GameEvent>();

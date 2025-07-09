@@ -18,7 +18,9 @@ export function useDragHandler({
   y,
   onDragSuccess,
 }: DragHandlerProps): DragHandlerReturn {
-  const { participantId } = useLocalSearchParams<{ participantId: string }>();
+  const { participant, gameId } = useLocalSearchParams<{ participant: string; gameId: string }>();
+  const participantId = parseInt(participant, 10);
+  const gameIdNumber = parseInt(gameId, 10);
 
   // Check collision detection
   const checkCollision = React.useCallback(
@@ -73,17 +75,17 @@ export function useDragHandler({
         .enabled(isAwaitingDrag && isCorrect)
         .onBegin((event) => {
           console.debug('Native gesture began for item:', imageKey, 'isCorrect:', isCorrect, 'position:', itemPosition);
-          runOnJS(trackEvent)('pan_handler_begin', participantId, event);
+          runOnJS(trackEvent)('pan_handler_begin', participantId, gameIdNumber, event);
         })
         .onUpdate((event) => {
           x.value = event.translationX;
           y.value = event.translationY;
-          runOnJS(trackEvent)('pan_handler_update', participantId, event);
+          runOnJS(trackEvent)('pan_handler_update', participantId, gameIdNumber, event);
         })
         .onEnd((event) => {
           'worklet';
 
-          runOnJS(trackEvent)('pan_handler_end', participantId, event);
+          runOnJS(trackEvent)('pan_handler_end', participantId, gameIdNumber, event);
 
           try {
             console.debug('=== NATIVE GESTURE END START (WORKLET) ===');

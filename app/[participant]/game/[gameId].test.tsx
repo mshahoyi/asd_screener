@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react-native';
-import GameScreen from './game';
+import GameScreen from './[gameId]';
 import { GameProvider } from '@/scripts/GameContext';
 import { createActor } from 'xstate';
 import { gameMachine } from '@/scripts/gameState';

@@ -131,7 +131,7 @@ export default function ParticipantDetails() {
             style={styles.button}
             onPress={() =>
               startGame(id)
-                .then(() => router.push(`/${participantId}/game`))
+                .then((game) => router.push(`/${participantId}/game/${game[0].id}`))
                 .catch(alert)
             }
           >

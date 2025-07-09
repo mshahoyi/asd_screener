@@ -1,5 +1,6 @@
 import React, { JSX } from 'react';
-import { View, Text, Button, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Pressable } from 'react-native';
+import { Button } from 'react-native-paper';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGame } from '@/scripts/GameContext';
@@ -10,6 +11,9 @@ import { useDragHandler } from '@/hooks/useDragHandler';
 import { useGameEvents } from '@/hooks/useGameEvents';
 import { trackEvent } from '@/scripts/analytics';
 import { mapTouchEventToProps } from '@/scripts/utils';
+import { endGame } from '@/db/controller';
+import { Ionicons } from '@expo/vector-icons';
+import GameTimer from '@/components/GameTimer';
 
 // Import all assets dynamically
 type AssetKey = keyof typeof assets;
@@ -289,10 +293,12 @@ const getGameItems = (
 
 export default function GameScreen() {
   const router = useRouter();
-  const { participantId } = useLocalSearchParams<{ participantId: string }>();
+  const { participant, gameId } = useLocalSearchParams<{ participant: string; gameId: string }>();
+  const participantId = parseInt(participant, 10);
+  const gameIdNumber = parseInt(gameId, 10);
   const [state, send] = useGame();
   useSound();
-  useGameEvents(participantId);
+  useGameEvents(participantId, gameIdNumber);
   const [characterBounds, setCharacterBounds] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
   // Add effect to log state changes
@@ -328,9 +334,9 @@ export default function GameScreen() {
   return (
     <GestureHandlerRootView
       style={styles.container}
-      onTouchStart={(e) => trackEvent('touch_start', participantId, mapTouchEventToProps(e))}
-      onTouchMove={(e) => trackEvent('touch_move', participantId, mapTouchEventToProps(e))}
-      onTouchEnd={(e) => trackEvent('touch_end', participantId, mapTouchEventToProps(e))}
+      onTouchStart={(e) => trackEvent('touch_start', participantId, gameIdNumber, mapTouchEventToProps(e))}
+      onTouchMove={(e) => trackEvent('touch_move', participantId, gameIdNumber, mapTouchEventToProps(e))}
+      onTouchEnd={(e) => trackEvent('touch_end', participantId, gameIdNumber, mapTouchEventToProps(e))}
     >
       <Text style={styles.gameInfo}>Game Screen</Text>
       <Text style={styles.gameInfo}>Difficulty: {state.context.difficultyLevel}</Text>
@@ -357,7 +363,31 @@ export default function GameScreen() {
       {/* Items positioned around character */}
       {state.value !== 'introduction' && <View style={styles.gameArea}>{gameItems}</View>}
 
-      <Button title="End Session" onPress={() => router.back()} />
+      {/* End game button */}
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          right: 0,
+          zIndex: 1000,
+          padding: 16,
+          flexDirection: 'row',
+          alignItems: 'center',
+          opacity: 0.5,
+        }}
+      >
+        <GameTimer />
+
+        <Pressable
+          onPress={() =>
+            endGame(gameIdNumber)
+              .then(() => router.back())
+              .catch(alert)
+          }
+        >
+          <Ionicons name="close" size={32} color="black" />
+        </Pressable>
+      </View>
     </GestureHandlerRootView>
   );
 }
