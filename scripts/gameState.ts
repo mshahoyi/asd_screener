@@ -49,7 +49,7 @@ export const gameMachine = setup({
   },
 }).createMachine({
   id: 'game',
-  initial: 'introduction',
+  initial: 'presentingTrial',
   context: {
     difficultyLevel: 1,
     cueLevel: 1,

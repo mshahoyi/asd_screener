@@ -71,6 +71,14 @@ export default function ResearcherDashboard() {
       <Stack.Screen
         options={{
           title: 'Participants',
+          headerLeft: () => (
+            <Pressable
+              onPress={() => router.push('/settings')}
+              style={{ width: 32, height: 32, justifyContent: 'center', alignItems: 'center' }}
+            >
+              <Ionicons name="settings-outline" size={24} />
+            </Pressable>
+          ),
           headerRight: () => (
             <Pressable
               onPress={() => router.push('/create-participant')}
