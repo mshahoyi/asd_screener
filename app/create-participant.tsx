@@ -1,13 +1,172 @@
-import { View, Text, Button } from 'react-native';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { TextInput, Button, Appbar, Text, SegmentedButtons } from 'react-native-paper';
 import { useRouter } from 'expo-router';
+import { useForm, Controller } from 'react-hook-form';
+import { createParticipant } from '@/db/controller';
+import { nanoid } from 'nanoid';
 
-export default function CreateParticipant() {
+export default function CreateParticipantScreen() {
   const router = useRouter();
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      anonymousId: '',
+      age: '',
+      gender: '',
+      condition: '',
+      note: '',
+    },
+  });
+
+  const genderOptions = [
+    { value: 'male', label: 'Male' },
+    { value: 'female', label: 'Female' },
+    { value: 'non-binary', label: 'Non-binary' },
+    { value: 'prefer-not-to-say', label: 'Prefer not to say' },
+  ];
+
+  const onSubmit = (data: typeof control._defaultValues) => {
+    createParticipant({
+      anonymousId: data.anonymousId ?? `P_${nanoid(6)}`,
+      age: parseInt(data.age!, 10),
+      gender: data.gender!,
+      condition: data.condition,
+      note: data.note,
+    })
+      .then((result) => {
+        router.replace({
+          pathname: '/[participant]',
+          params: {
+            participant: result[0].id.toString(),
+          },
+        });
+      })
+      .catch((error) => {
+        console.error('Error creating participant', error);
+        alert(error.message);
+      });
+  };
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Create Participant Screen</Text>
-      <Button title="Save" onPress={() => router.back()} />
+    <View style={styles.form}>
+      <Controller
+        control={control}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextInput
+            label="Anonymous ID"
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value}
+            style={styles.input}
+            error={!!errors.anonymousId}
+          />
+        )}
+        name="anonymousId"
+      />
+      {errors.anonymousId && <Text style={styles.errorText}>{errors.anonymousId.message}</Text>}
+
+      <Controller
+        control={control}
+        rules={{ required: 'Age is required.', pattern: { value: /^\d+$/, message: 'Age must be a number.' } }}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextInput
+            label="Age"
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value}
+            keyboardType="numeric"
+            style={styles.input}
+            error={!!errors.age}
+          />
+        )}
+        name="age"
+      />
+      {errors.age && <Text style={styles.errorText}>{errors.age.message}</Text>}
+
+      <Controller
+        control={control}
+        rules={{ required: 'Gender is required.' }}
+        render={({ field: { onChange, value } }) => (
+          <View style={styles.segmentedContainer}>
+            <Text variant="labelMedium" style={styles.segmentedLabel}>
+              Gender
+            </Text>
+            <SegmentedButtons value={value} onValueChange={onChange} buttons={genderOptions} style={styles.segmentedButtons} />
+          </View>
+        )}
+        name="gender"
+      />
+      {errors.gender && <Text style={styles.errorText}>{errors.gender.message}</Text>}
+
+      <Controller
+        control={control}
+        rules={{ required: 'Condition is required.' }}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextInput
+            label="Condition"
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value}
+            style={styles.input}
+            error={!!errors.condition}
+          />
+        )}
+        name="condition"
+      />
+      {errors.condition && <Text style={styles.errorText}>{errors.condition.message}</Text>}
+
+      <Controller
+        control={control}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextInput
+            multiline
+            label="Note"
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value}
+            style={styles.input}
+            error={!!errors.note}
+          />
+        )}
+        name="note"
+      />
+
+      <Button mode="contained" onPress={handleSubmit(onSubmit)} style={styles.button}>
+        Save Participant
+      </Button>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  form: {
+    padding: 16,
+  },
+  input: {
+    marginBottom: 8,
+  },
+  segmentedContainer: {
+    marginBottom: 16,
+  },
+  segmentedLabel: {
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  segmentedButtons: {
+    marginBottom: 8,
+  },
+  button: {
+    marginTop: 16,
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 8,
+  },
+});

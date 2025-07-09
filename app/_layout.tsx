@@ -1,7 +1,11 @@
 import '@/scripts/eventRecorder';
 import { Stack } from 'expo-router';
+import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
+import { db } from '@/db/index';
 
 export default function RootLayout() {
+  useDrizzleStudio(db);
+
   return (
     <Stack>
       <Stack.Screen name="index" options={{ title: 'Dashboard' }} />

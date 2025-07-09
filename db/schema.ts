@@ -8,6 +8,9 @@ export const participants = sqliteTable('participants', {
   gender: text('gender').notNull(),
   condition: text('condition'),
   note: text('note'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
 });
 
 export const games = sqliteTable('games', {
@@ -29,7 +32,7 @@ export const itemClicks = sqliteTable('item_clicks', {
   correctPosition: text('correct_position').notNull(),
   timestamp: integer('timestamp', { mode: 'timestamp' })
     .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
+    .default(sql`(unixepoch())`),
   cueLevel: integer('cue_level').notNull(),
   difficultyLevel: integer('difficulty_level').notNull(),
 });
@@ -45,6 +48,6 @@ export const gameEvents = sqliteTable('game_events', {
     .references(() => participants.id),
   timestamp: integer('timestamp', { mode: 'timestamp' })
     .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
+    .default(sql`(unixepoch())`),
   properties: text('properties', { mode: 'json' }),
 });
