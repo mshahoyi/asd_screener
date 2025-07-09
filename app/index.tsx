@@ -6,6 +6,7 @@ import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getParticipants, NewParticipant, Participant, ParticipantWithCounts, startGame } from '@/db/controller';
 import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
+import { exportData } from '@/scripts/exportController';
 
 export default function ResearcherDashboard() {
   const [participants, setParticipants] = useState<ParticipantWithCounts[]>([]);
@@ -52,6 +53,10 @@ export default function ResearcherDashboard() {
         {renderLabelValue('Events', item.eventCount.toString())}
       </Card.Content>
       <Card.Actions>
+        <Button mode="outlined" onPress={() => exportData(item.id)}>
+          Export
+        </Button>
+
         <Button
           mode="contained"
           onPress={() =>
@@ -80,23 +85,26 @@ export default function ResearcherDashboard() {
             </Pressable>
           ),
           headerRight: () => (
-            <Pressable
-              onPress={() => router.push('/create-participant')}
-              style={{ width: 32, height: 32, justifyContent: 'center', alignItems: 'center' }}
-            >
-              <Ionicons name="add" size={24} />
-            </Pressable>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <Pressable onPress={() => exportData()} style={{ width: 32, height: 32, justifyContent: 'center', alignItems: 'center' }}>
+                <Ionicons name="share-outline" size={24} />
+              </Pressable>
+              <Pressable
+                onPress={() => router.push('/create-participant')}
+                style={{ width: 32, height: 32, justifyContent: 'center', alignItems: 'center' }}
+              >
+                <Ionicons name="add" size={24} />
+              </Pressable>
+            </View>
           ),
         }}
       />
       <View style={styles.container}>
         <FlatList
           data={participants}
-          numColumns={2}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.list}
-          columnWrapperStyle={{ gap: 12 }}
           ListEmptyComponent={<Text>No participants found</Text>}
         />
       </View>

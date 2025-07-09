@@ -2,7 +2,7 @@ import React, { JSX } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Pressable } from 'react-native';
 import { Button } from 'react-native-paper';
 import { Image } from 'expo-image';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useGame } from '@/scripts/GameContext';
 import { useSound } from '@/hooks/useSound';
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -332,63 +332,73 @@ export default function GameScreen() {
   );
 
   return (
-    <GestureHandlerRootView
-      style={styles.container}
-      onTouchStart={(e) => trackEvent('touch_start', participantId, gameIdNumber, mapTouchEventToProps(e))}
-      onTouchMove={(e) => trackEvent('touch_move', participantId, gameIdNumber, mapTouchEventToProps(e))}
-      onTouchEnd={(e) => trackEvent('touch_end', participantId, gameIdNumber, mapTouchEventToProps(e))}
-    >
-      <Text style={styles.gameInfo}>Game Screen</Text>
-      <Text style={styles.gameInfo}>Difficulty: {state.context.difficultyLevel}</Text>
-      <Text style={styles.gameInfo}>Cue: {state.context.cueLevel}</Text>
-      <Text style={styles.gameInfo}>State: {state.value as string}</Text>
-
-      {/* Character in center */}
-      <View style={styles.characterContainer} onLayout={handleCharacterLayout}>
-        <Image
-          testID={`character-image-${characterImageKey}`}
-          source={assets[characterImageKey]}
-          style={styles.characterImage}
-          contentFit="contain"
-        />
-      </View>
-
-      {/* Drop zone indicator - only visible during drag state */}
-      {isAwaitingDrag && (
-        <View style={styles.dropZoneIndicator}>
-          <Text style={styles.dropZoneText}>Drop Here</Text>
-        </View>
-      )}
-
-      {/* Items positioned around character */}
-      {state.value !== 'introduction' && <View style={styles.gameArea}>{gameItems}</View>}
-
-      {/* End game button */}
-      <View
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          right: 0,
-          zIndex: 1000,
-          padding: 16,
-          flexDirection: 'row',
-          alignItems: 'center',
-          opacity: 0.5,
+    <>
+      <Stack.Screen
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+          fullScreenGestureEnabled: false,
         }}
-      >
-        <GameTimer />
+      />
 
-        <Pressable
-          onPress={() =>
-            endGame(gameIdNumber)
-              .then(() => router.back())
-              .catch(alert)
-          }
+      <GestureHandlerRootView
+        style={styles.container}
+        onTouchStart={(e) => trackEvent('touch_start', participantId, gameIdNumber, mapTouchEventToProps(e))}
+        onTouchMove={(e) => trackEvent('touch_move', participantId, gameIdNumber, mapTouchEventToProps(e))}
+        onTouchEnd={(e) => trackEvent('touch_end', participantId, gameIdNumber, mapTouchEventToProps(e))}
+      >
+        <Text style={styles.gameInfo}>Game Screen</Text>
+        <Text style={styles.gameInfo}>Difficulty: {state.context.difficultyLevel}</Text>
+        <Text style={styles.gameInfo}>Cue: {state.context.cueLevel}</Text>
+        <Text style={styles.gameInfo}>State: {state.value as string}</Text>
+
+        {/* Character in center */}
+        <View style={styles.characterContainer} onLayout={handleCharacterLayout}>
+          <Image
+            testID={`character-image-${characterImageKey}`}
+            source={assets[characterImageKey]}
+            style={styles.characterImage}
+            contentFit="contain"
+          />
+        </View>
+
+        {/* Drop zone indicator - only visible during drag state */}
+        {isAwaitingDrag && (
+          <View style={styles.dropZoneIndicator}>
+            <Text style={styles.dropZoneText}>Drop Here</Text>
+          </View>
+        )}
+
+        {/* Items positioned around character */}
+        {state.value !== 'introduction' && <View style={styles.gameArea}>{gameItems}</View>}
+
+        {/* End game button */}
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            zIndex: 1000,
+            padding: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            opacity: 0.5,
+          }}
         >
-          <Ionicons name="close" size={32} color="black" />
-        </Pressable>
-      </View>
-    </GestureHandlerRootView>
+          <GameTimer />
+
+          <Pressable
+            onPress={() =>
+              endGame(gameIdNumber)
+                .then(() => router.back())
+                .catch(alert)
+            }
+          >
+            <Ionicons name="close" size={32} color="black" />
+          </Pressable>
+        </View>
+      </GestureHandlerRootView>
+    </>
   );
 }
 

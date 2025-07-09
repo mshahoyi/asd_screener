@@ -15,6 +15,13 @@
       "when": 1752071933340,
       "tag": "0001_powerful_sleepwalker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1752083651529,
+      "tag": "0002_exotic_pestilence",
+      "breakpoints": true
     }
   ]
 }

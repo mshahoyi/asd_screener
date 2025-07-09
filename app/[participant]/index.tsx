@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { Text, Card, Title, Paragraph, Button, Appbar } from 'react-native-paper';
 import { useLocalSearchParams, useRouter, useFocusEffect, Stack } from 'expo-router';
@@ -11,6 +11,7 @@ import {
   startGame,
 } from '@/db/controller';
 import { Ionicons } from '@expo/vector-icons';
+import { exportData } from '@/scripts/exportController';
 
 type Game = {
   id: number;
@@ -53,6 +54,18 @@ export default function ParticipantDetails() {
     }, [participantId])
   );
 
+  const renderLabelValue = useCallback(
+    (label: string, value: string | null) => (
+      <Text variant="bodyMedium">
+        <Text variant="labelLarge" style={{ fontWeight: 'bold' }}>
+          {label}:
+        </Text>{' '}
+        {value}
+      </Text>
+    ),
+    []
+  );
+
   if (!participant) {
     return (
       <View style={styles.container}>
@@ -67,19 +80,25 @@ export default function ParticipantDetails() {
         options={{
           title: 'Participant Details',
           headerRight: () => (
-            <Pressable
-              onPress={() =>
-                router.push({
-                  pathname: '/[participant]/edit',
-                  params: {
-                    participant: participantId,
-                  },
-                })
-              }
-              style={{ width: 32, height: 32, justifyContent: 'center', alignItems: 'center' }}
-            >
-              <Ionicons name="pencil" size={24} />
-            </Pressable>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <Pressable onPress={() => exportData(id)} style={{ width: 32, height: 32, justifyContent: 'center', alignItems: 'center' }}>
+                <Ionicons name="share-outline" size={24} />
+              </Pressable>
+
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: '/[participant]/edit',
+                    params: {
+                      participant: participantId,
+                    },
+                  })
+                }
+                style={{ width: 32, height: 32, justifyContent: 'center', alignItems: 'center' }}
+              >
+                <Ionicons name="pencil" size={24} />
+              </Pressable>
+            </View>
           ),
         }}
       />
@@ -89,36 +108,11 @@ export default function ParticipantDetails() {
           <Card style={styles.card}>
             <Card.Content style={{ gap: 2 }}>
               <Text variant="titleLarge">Participant Information</Text>
-              <Text variant="bodyMedium">
-                <Text variant="labelLarge" style={{ fontWeight: 'bold' }}>
-                  Anonymous ID:
-                </Text>{' '}
-                {participant.anonymousId}
-              </Text>
-              <Text variant="bodyMedium">
-                <Text variant="labelLarge" style={{ fontWeight: 'bold' }}>
-                  Age:
-                </Text>{' '}
-                {participant.age}
-              </Text>
-              <Text variant="bodyMedium">
-                <Text variant="labelLarge" style={{ fontWeight: 'bold' }}>
-                  Gender:
-                </Text>{' '}
-                {participant.gender}
-              </Text>
-              <Text variant="bodyMedium">
-                <Text variant="labelLarge" style={{ fontWeight: 'bold' }}>
-                  Condition:
-                </Text>{' '}
-                {participant.condition}
-              </Text>
-              <Text variant="bodyMedium">
-                <Text variant="labelLarge" style={{ fontWeight: 'bold' }}>
-                  Note:
-                </Text>{' '}
-                {participant.note}
-              </Text>
+              {renderLabelValue('Anonymous ID', participant.anonymousId)}
+              {renderLabelValue('Age', participant.age.toString())}
+              {renderLabelValue('Gender', participant.gender)}
+              {renderLabelValue('Condition', participant.condition)}
+              {renderLabelValue('Note', participant.note)}
             </Card.Content>
           </Card>
 

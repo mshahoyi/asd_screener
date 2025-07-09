@@ -24,6 +24,9 @@ export const games = sqliteTable('games', {
 
 export const itemClicks = sqliteTable('item_clicks', {
   id: integer('id').primaryKey(),
+  participantId: integer('participant_id')
+    .notNull()
+    .references(() => participants.id),
   gameId: integer('game_id')
     .notNull()
     .references(() => games.id),
