@@ -1,0 +1,33 @@
+// Import all assets dynamically
+export type CharacterAssetKey = keyof typeof characterAssets;
+
+export const characterAssets = {
+  neutral: require('@/assets/neutral.png'),
+  openHands: require('@/assets/open-hands.png'),
+  faceBottomLeft: require('@/assets/face-bottom-left.png'),
+  faceBottomRight: require('@/assets/face-bottom-right.png'),
+  faceLeft: require('@/assets/face-left.png'),
+  faceRight: require('@/assets/face-right.png'),
+  faceTopLeft: require('@/assets/face-top-left.png'),
+  faceTopRight: require('@/assets/face-top-right.png'),
+  gazeBottomLeft: require('@/assets/gaze-bottom-left.png'),
+  gazeBottomRight: require('@/assets/gaze-bottom-right.png'),
+  gazeLeft: require('@/assets/gaze-left.png'),
+  gazeRight: require('@/assets/gaze-right.png'),
+  gazeTopLeft: require('@/assets/gaze-top-left.png'),
+  gazeTopRight: require('@/assets/gaze-top-right.png'),
+  pointBottomLeft: require('@/assets/point-bottom-left.png'),
+  pointBottomRight: require('@/assets/point-bottom-right.png'),
+  pointLeft: require('@/assets/point-left.png'),
+  pointRight: require('@/assets/point-right.png'),
+  pointTopLeft: require('@/assets/point-top-left.png'),
+  pointTopRight: require('@/assets/point-top-right.png'),
+  itemKettleBlue: require('@/assets/item-kettle-blue.png'),
+  itemKettleBronze: require('@/assets/item-kettle-bronze.png'),
+  itemKettleGray: require('@/assets/item-kettle-gray.png'),
+  itemKettleRed: require('@/assets/item-kettle-red.png'),
+  itemSocksCat: require('@/assets/item-socks-cat.png'),
+  itemSocksOrange: require('@/assets/item-socks-orange.png'),
+  itemSocksPink: require('@/assets/item-socks-pink.png'),
+  itemSocksStripes: require('@/assets/item-socks-stripes.png'),
+};

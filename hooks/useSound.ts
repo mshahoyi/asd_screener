@@ -28,16 +28,13 @@ export const useSound = () => {
     if (status.didJustFinish) callback.current?.();
   }, [status.didJustFinish]);
 
-  const playSound = useCallback(
-    (soundName: SoundName, cb?: () => unknown) => {
-      player.pause();
-      player.replace(soundFiles[soundName]);
-      player.seekTo(0);
-      player.play();
-      callback.current = cb || null;
-    },
-    [player, soundFiles]
-  );
+  const playSound = useCallback((soundName: SoundName, cb?: () => unknown) => {
+    player.pause();
+    player.replace(soundFiles[soundName]);
+    player.seekTo(0);
+    player.play();
+    callback.current = cb || null;
+  }, []);
 
   useEffect(() => {
     playSound('intro', () => send({ type: 'START_GAME' }));
@@ -68,7 +65,7 @@ export const useSound = () => {
     });
 
     return () => sub.unsubscribe();
-  }, [actor, playSound]);
+  }, []);
 
   return {};
 };

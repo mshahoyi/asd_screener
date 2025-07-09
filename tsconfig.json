@@ -6,7 +6,8 @@
     "paths": {
       "@/scripts/*": ["./scripts/*"],
       "@/assets/*": ["./assets/*"],
-      "@/hooks/*": ["./hooks/*"]
+      "@/hooks/*": ["./hooks/*"],
+      "@/components/*": ["./components/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

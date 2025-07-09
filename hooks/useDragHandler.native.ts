@@ -2,6 +2,8 @@ import React from 'react';
 import { Gesture } from 'react-native-gesture-handler';
 import { withSpring, runOnJS } from 'react-native-reanimated';
 import { DragHandlerProps, DragHandlerReturn } from './useDragHandler';
+import { trackEvent } from '@/scripts/analytics';
+import { useLocalSearchParams } from 'expo-router';
 
 export function useDragHandler({
   isAwaitingDrag,
@@ -16,6 +18,8 @@ export function useDragHandler({
   y,
   onDragSuccess,
 }: DragHandlerProps): DragHandlerReturn {
+  const { participantId } = useLocalSearchParams<{ participantId: string }>();
+
   // Check collision detection
   const checkCollision = React.useCallback(
     (translationX: number, translationY: number): boolean => {
@@ -67,15 +71,20 @@ export function useDragHandler({
     () =>
       Gesture.Pan()
         .enabled(isAwaitingDrag && isCorrect)
-        .onBegin(() => {
+        .onBegin((event) => {
           console.debug('Native gesture began for item:', imageKey, 'isCorrect:', isCorrect, 'position:', itemPosition);
+          runOnJS(trackEvent)('pan_handler_begin', participantId, event);
         })
         .onUpdate((event) => {
           x.value = event.translationX;
           y.value = event.translationY;
+          runOnJS(trackEvent)('pan_handler_update', participantId, event);
         })
         .onEnd((event) => {
           'worklet';
+
+          runOnJS(trackEvent)('pan_handler_end', participantId, event);
+
           try {
             console.debug('=== NATIVE GESTURE END START (WORKLET) ===');
             console.debug('Gesture ended:', event.translationX, event.translationY);

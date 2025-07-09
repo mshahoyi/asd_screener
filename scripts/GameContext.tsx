@@ -3,16 +3,20 @@ import { useMachine } from '@xstate/react';
 import { gameMachine } from '@/scripts/gameState';
 import { ActorRefFrom, StateFrom } from 'xstate';
 
-type GameContextType = ReturnType<typeof useMachine<typeof gameMachine>>;
+type GameMachine = typeof gameMachine;
+
+type GameContextType = ReturnType<typeof useMachine<GameMachine>>;
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-// @ts-ignore
 export const GameProvider: React.FC<{
   children: React.ReactNode;
-  machine?: any;
+  machine?: ActorRefFrom<GameMachine> | GameMachine;
 }> = ({ children, machine }) => {
-  const data = machine && typeof machine.getSnapshot === 'function' ? useActorState(machine) : useMachine(machine || gameMachine);
+  const data =
+    machine && typeof (machine as ActorRefFrom<GameMachine>).getSnapshot === 'function'
+      ? useActorState(machine)
+      : useMachine((machine as GameMachine) || gameMachine);
 
   return <GameContext.Provider value={data as GameContextType}>{children}</GameContext.Provider>;
 };
