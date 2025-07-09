@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { TextInput, Button, Text } from 'react-native-paper';
+import { TextInput, Button, Text, SegmentedButtons } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 
 export type ParticipantFormData = {
   anonymousId: string;
   age: string;
   gender: string;
+  condition: string;
+  note: string;
 };
 
 type ParticipantFormProps = {
@@ -15,9 +17,16 @@ type ParticipantFormProps = {
   buttonText?: string;
 };
 
+const genderOptions = [
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+  { value: 'non-binary', label: 'Non-binary' },
+  { value: 'prefer-not-to-say', label: 'Prefer not to say' },
+];
+
 export default function ParticipantForm({
   onSubmit,
-  initialValues = { anonymousId: '', age: '', gender: '' },
+  initialValues = { anonymousId: '', age: '', gender: '', condition: '', note: '' },
   buttonText = 'Save',
 }: ParticipantFormProps) {
   const {
@@ -30,7 +39,6 @@ export default function ParticipantForm({
     <View style={styles.form}>
       <Controller
         control={control}
-        rules={{ required: 'Anonymous ID is required.' }}
         render={({ field: { onChange, onBlur, value } }) => (
           <TextInput
             label="Anonymous ID"
@@ -39,6 +47,7 @@ export default function ParticipantForm({
             value={value}
             style={styles.input}
             error={!!errors.anonymousId}
+            placeholder="Leave blank to auto-generate"
           />
         )}
         name="anonymousId"
@@ -66,19 +75,50 @@ export default function ParticipantForm({
       <Controller
         control={control}
         rules={{ required: 'Gender is required.' }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <TextInput
-            label="Gender"
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-            style={styles.input}
-            error={!!errors.gender}
-          />
+        render={({ field: { onChange, value } }) => (
+          <View style={styles.segmentedContainer}>
+            <Text variant="labelMedium" style={styles.segmentedLabel}>
+              Gender
+            </Text>
+            <SegmentedButtons value={value} onValueChange={onChange} buttons={genderOptions} style={styles.segmentedButtons} />
+          </View>
         )}
         name="gender"
       />
       {errors.gender && <Text style={styles.errorText}>{errors.gender.message}</Text>}
+
+      <Controller
+        control={control}
+        rules={{ required: 'Condition is required.' }}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextInput
+            label="Condition"
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value}
+            style={styles.input}
+            error={!!errors.condition}
+          />
+        )}
+        name="condition"
+      />
+      {errors.condition && <Text style={styles.errorText}>{errors.condition.message}</Text>}
+
+      <Controller
+        control={control}
+        render={({ field: { onChange, onBlur, value } }) => (
+          <TextInput
+            multiline
+            label="Note"
+            onBlur={onBlur}
+            onChangeText={onChange}
+            value={value}
+            style={styles.input}
+            error={!!errors.note}
+          />
+        )}
+        name="note"
+      />
 
       <Button mode="contained" onPress={handleSubmit(onSubmit)} style={styles.button}>
         {buttonText}
@@ -92,6 +132,16 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   input: {
+    marginBottom: 8,
+  },
+  segmentedContainer: {
+    marginBottom: 16,
+  },
+  segmentedLabel: {
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  segmentedButtons: {
     marginBottom: 8,
   },
   button: {

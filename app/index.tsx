@@ -4,7 +4,7 @@ import { Button, Card, Text } from 'react-native-paper';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { getParticipants, NewParticipant, Participant } from '@/db/controller';
+import { getParticipants, NewParticipant, Participant, startGame } from '@/db/controller';
 import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 
 export default function ResearcherDashboard() {
@@ -37,7 +37,14 @@ export default function ResearcherDashboard() {
         <Text>Created At: {item.createdAt.toLocaleString()}</Text>
       </Card.Content>
       <Card.Actions>
-        <Button mode="contained" onPress={() => router.push(`/${item.id}/game`)}>
+        <Button
+          mode="contained"
+          onPress={() =>
+            startGame(item.id)
+              .then(() => router.push(`/${item.id}/game`))
+              .catch(alert)
+          }
+        >
           Start Game
         </Button>
       </Card.Actions>
