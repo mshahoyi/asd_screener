@@ -1,5 +1,5 @@
 import React, { JSX } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Pressable } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Pressable, LayoutChangeEvent } from 'react-native';
 import { Button } from 'react-native-paper';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -104,6 +104,7 @@ interface DraggableItemProps {
   send: Function;
   characterBounds: { x: number; y: number; width: number; height: number } | null;
   itemPosition: string;
+  positionStyle: any;
 }
 
 const DraggableItem = ({
@@ -115,8 +116,8 @@ const DraggableItem = ({
   send,
   characterBounds,
   itemPosition,
+  positionStyle,
 }: DraggableItemProps) => {
-  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const x = useSharedValue(0);
   const y = useSharedValue(0);
   const [itemBounds, setItemBounds] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
@@ -152,59 +153,19 @@ const DraggableItem = ({
     imageKey,
     characterBounds,
     itemBounds,
-    screenWidth,
-    screenHeight,
     x,
     y,
     onDragSuccess: handleDragSuccess,
   });
 
-  const handleItemLayout = React.useCallback(
-    (event: any) => {
-      console.debug('=== ITEM LAYOUT CALCULATION ===');
-      const { width, height } = event.nativeEvent.layout;
-      console.debug('Layout event:', { width, height });
-      console.debug('Screen dimensions:', { screenWidth, screenHeight });
-
-      // Calculate position based on the percentage styles we're using
-      let estimatedX = 0;
-      let estimatedY = 0;
-
-      const itemWidth = screenWidth * 0.15; // 15% width from styles
-
-      switch (itemPosition) {
-        case 'left':
-          estimatedX = screenWidth * 0.05; // 5% from left
-          estimatedY = screenHeight * 0.45; // 45% from top
-          break;
-        case 'right':
-          estimatedX = screenWidth * 0.95 - itemWidth; // right: 5% means 95% - item width
-          estimatedY = screenHeight * 0.45;
-          break;
-        case 'top-left':
-          estimatedX = screenWidth * 0.05;
-          estimatedY = screenHeight * 0.1;
-          break;
-        case 'top-right':
-          estimatedX = screenWidth * 0.95 - itemWidth;
-          estimatedY = screenHeight * 0.1;
-          break;
-        case 'bottom-left':
-          estimatedX = screenWidth * 0.05;
-          estimatedY = screenHeight * 0.9 - itemWidth; // bottom: 10% means 90% - item height
-          break;
-        case 'bottom-right':
-          estimatedX = screenWidth * 0.95 - itemWidth;
-          estimatedY = screenHeight * 0.9 - itemWidth;
-          break;
-      }
-
-      const bounds = { x: estimatedX, y: estimatedY, width: itemWidth, height: itemWidth };
-      setItemBounds(bounds);
-      console.debug('Item calculated bounds for', itemPosition, ':', bounds);
-    },
-    [itemPosition, screenWidth, screenHeight]
-  );
+  const handleItemLayout = React.useCallback((event: LayoutChangeEvent) => {
+    console.debug('=== ITEM LAYOUT ===');
+    const { x, y, width, height } = event.nativeEvent.layout;
+    const bounds = { x, y, width, height };
+    setItemBounds(bounds);
+    console.debug('Item bounds set:', JSON.stringify(bounds));
+    console.debug('=== END ITEM LAYOUT ===');
+  }, []);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -217,7 +178,7 @@ const DraggableItem = ({
   const isWeb = typeof window !== 'undefined' && window.document;
 
   return (
-    <View onLayout={handleItemLayout} style={{ width: '100%', height: '100%' }}>
+    <View onLayout={handleItemLayout} style={[styles.gameItemContainer, positionStyle]}>
       <GestureDetector gesture={gesture}>
         <Animated.View style={[animatedStyle, { height: '100%', width: '100%' }]}>
           <TouchableOpacity
@@ -274,18 +235,18 @@ const getGameItems = (
     const positionStyle = getPositionStyle(position);
 
     items.push(
-      <View key={position} style={[styles.gameItemContainer, positionStyle]}>
-        <DraggableItem
-          isCorrect={isCorrect}
-          isGlowing={isGlowing}
-          imageKey={imageKey}
-          onSelect={() => send({ type: 'SELECTION', selectedPosition: position })}
-          isAwaitingDrag={isAwaitingDrag}
-          send={send}
-          characterBounds={characterBounds}
-          itemPosition={position}
-        />
-      </View>
+      <DraggableItem
+        isCorrect={isCorrect}
+        isGlowing={isGlowing}
+        imageKey={imageKey}
+        onSelect={() => send({ type: 'SELECTION', selectedPosition: position })}
+        isAwaitingDrag={isAwaitingDrag}
+        send={send}
+        characterBounds={characterBounds}
+        itemPosition={position}
+        positionStyle={positionStyle}
+        key={position}
+      />
     );
   });
   return items;
@@ -347,10 +308,12 @@ export default function GameScreen() {
         onTouchMove={(e) => trackEvent('touch_move', participantId, gameIdNumber, mapTouchEventToProps(e))}
         onTouchEnd={(e) => trackEvent('touch_end', participantId, gameIdNumber, mapTouchEventToProps(e))}
       >
-        <Text style={styles.gameInfo}>Game Screen</Text>
-        <Text style={styles.gameInfo}>Difficulty: {state.context.difficultyLevel}</Text>
-        <Text style={styles.gameInfo}>Cue: {state.context.cueLevel}</Text>
-        <Text style={styles.gameInfo}>State: {state.value as string}</Text>
+        {!!__DEV__ && (
+          <View style={{ position: 'absolute', top: 40, left: 0, right: 0 }}>
+            <Text style={styles.gameInfo}>{state.value as string}</Text>
+            <Text style={styles.gameInfo}>{JSON.stringify(state.context, null, 2)}</Text>
+          </View>
+        )}
 
         {/* Character in center */}
         <View style={styles.characterContainer} onLayout={handleCharacterLayout}>
@@ -454,17 +417,14 @@ const styles = StyleSheet.create({
   },
   gameArea: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    height: '100%',
+    width: '100%',
     zIndex: 1,
   },
   gameItemContainer: {
     position: 'absolute',
     width: '15%', // Increased from 10% to make items more visible
     aspectRatio: 1,
-    backgroundColor: 'rgba(255, 0, 0, 0.1)', // Temporary background to see positioning
   },
   gameItemTouchable: {
     width: '100%',

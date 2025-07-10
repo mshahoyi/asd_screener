@@ -7,8 +7,6 @@ export interface DragHandlerProps {
   imageKey: string;
   characterBounds: { x: number; y: number; width: number; height: number } | null;
   itemBounds: { x: number; y: number; width: number; height: number } | null;
-  screenWidth: number;
-  screenHeight: number;
   x: SharedValue<number>;
   y: SharedValue<number>;
   onDragSuccess: () => void;

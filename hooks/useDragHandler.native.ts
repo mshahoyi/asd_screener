@@ -12,8 +12,6 @@ export function useDragHandler({
   imageKey,
   characterBounds,
   itemBounds,
-  screenWidth,
-  screenHeight,
   x,
   y,
   onDragSuccess,
@@ -24,33 +22,28 @@ export function useDragHandler({
 
   // Check collision detection
   const checkCollision = React.useCallback(
-    (translationX: number, translationY: number): boolean => {
+    (centerX: number, centerY: number): boolean => {
       'worklet';
       if (!characterBounds || !itemBounds) {
         console.debug('Missing bounds data');
         return false;
       }
 
-      // Calculate the final position of the dragged item
-      const finalItemX = itemBounds.x + translationX;
-      const finalItemY = itemBounds.y + translationY;
-
-      // Character absolute bounds
-      const characterAbsoluteX = screenWidth * 0.2 + characterBounds.x;
-      const characterAbsoluteY = screenHeight * 0.2 + characterBounds.y;
+      console.debug('Received character bounds:', characterBounds);
+      console.debug('Received item bounds:', itemBounds);
 
       const characterRect = {
-        left: characterAbsoluteX,
-        top: characterAbsoluteY,
-        right: characterAbsoluteX + characterBounds.width,
-        bottom: characterAbsoluteY + characterBounds.height,
+        left: characterBounds.x,
+        top: characterBounds.y,
+        right: characterBounds.x + characterBounds.width,
+        bottom: characterBounds.y + characterBounds.height,
       };
 
       const itemRect = {
-        left: finalItemX,
-        top: finalItemY,
-        right: finalItemX + itemBounds.width,
-        bottom: finalItemY + itemBounds.height,
+        left: centerX - itemBounds.width / 2,
+        top: centerY - itemBounds.height / 2,
+        right: centerX + itemBounds.width / 2,
+        bottom: centerY + itemBounds.height / 2,
       };
 
       console.debug('Character rectangle:', characterRect);
@@ -66,7 +59,7 @@ export function useDragHandler({
       console.debug('Rectangle overlap check:', isOverlapping);
       return isOverlapping;
     },
-    [characterBounds, itemBounds, screenWidth, screenHeight]
+    [characterBounds, itemBounds]
   );
 
   const gesture = React.useMemo(
@@ -89,7 +82,7 @@ export function useDragHandler({
 
           try {
             console.debug('=== NATIVE GESTURE END START (WORKLET) ===');
-            console.debug('Gesture ended:', event.translationX, event.translationY);
+            console.debug('Gesture ended:', event.absoluteX, event.absoluteY);
             console.debug('isCorrect:', isCorrect);
             console.debug('imageKey:', imageKey);
             console.debug('itemPosition:', itemPosition);
@@ -101,7 +94,9 @@ export function useDragHandler({
               return;
             }
 
-            const isOverlapping = checkCollision(event.translationX, event.translationY);
+            const centerX = event.absoluteX; // absoluteX is the center of the item
+            const centerY = event.absoluteY; // absoluteY is the center of the item
+            const isOverlapping = checkCollision(centerX, centerY);
 
             if (isOverlapping) {
               console.debug('Native drag successful! Item overlaps with character image');
