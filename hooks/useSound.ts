@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useGame } from '@/scripts/GameContext';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { GameStateEmittedEvent } from '@/scripts/gameState';
+import { router } from 'expo-router';
 
 // Define a mapping from sound names to their file paths
 const soundFiles = {
@@ -39,6 +40,13 @@ export const useSound = () => {
   useEffect(() => {
     playSound('intro', () => send({ type: 'START_GAME' }));
   }, []);
+
+  useEffect(() => {
+    console.debug('########################## finished', state.value);
+    if (state.value === 'sessionEnded') {
+      playSound('bye', () => router.back());
+    }
+  }, [state.value]);
 
   useEffect(() => {
     const cueNegativeSounds: Record<number, SoundName> = {

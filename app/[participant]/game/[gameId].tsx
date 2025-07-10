@@ -14,6 +14,7 @@ import { mapTouchEventToProps } from '@/scripts/utils';
 import { endGame } from '@/db/controller';
 import { Ionicons } from '@expo/vector-icons';
 import GameTimer from '@/components/GameTimer';
+import { useGameTimers } from '@/hooks/useGameTimers';
 
 // Import all assets dynamically
 type AssetKey = keyof typeof assets;
@@ -253,6 +254,7 @@ const getGameItems = (
 };
 
 export default function GameScreen() {
+  useGameTimers();
   const router = useRouter();
   const { participant, gameId } = useLocalSearchParams<{ participant: string; gameId: string }>();
   const participantId = parseInt(participant, 10);

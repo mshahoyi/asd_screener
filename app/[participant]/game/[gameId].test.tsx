@@ -4,6 +4,7 @@ import GameScreen from './[gameId]';
 import { GameProvider } from '@/scripts/GameContext';
 import { createActor } from 'xstate';
 import { gameMachine } from '@/scripts/gameState';
+import { router } from 'expo-router';
 
 // Mock the useRouter and useLocalSearchParams hooks
 jest.mock('expo-router', () => ({
@@ -33,6 +34,10 @@ describe('GameScreen UI with Assets', () => {
   // Mock Math.random to control correct item assignment for tests
   let mockMathRandom: jest.SpyInstance;
   let consoleDebugSpy: jest.SpyInstance;
+
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
 
   beforeEach(() => {
     // Default mock for Math.random to return a value that results in 'left' for DL1

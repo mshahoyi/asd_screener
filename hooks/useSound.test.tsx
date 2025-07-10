@@ -5,9 +5,11 @@ import { gameMachine } from '@/scripts/gameState';
 import { GameProvider } from '@/scripts/GameContext';
 import { AudioStatus, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import React from 'react';
+import { router } from 'expo-router';
 
 // Mock expo-av
 jest.mock('expo-audio');
+jest.mock('expo-router');
 
 const mockUseCallbackReturn = jest.fn();
 jest.mock('react', () => ({
@@ -109,6 +111,17 @@ describe('useSound', () => {
     act(() => gameActor.send({ type: 'DRAG_SUCCESSFUL' }));
 
     expect(mockUseCallbackReturn).toHaveBeenLastCalledWith('positiveDrag');
+  });
+
+  it('plays the ending sound when the game ends and goes back to the home screen', () => {
+    const { gameActor, rerender } = renderWithGameContext(() => useSound());
+
+    act(() => gameActor.send({ type: 'START_GAME' }));
+    act(() => gameActor.send({ type: 'SESSION_TIMER_ELAPSED' }));
+    finishSound(rerender);
+
+    expect(mockUseCallbackReturn).toHaveBeenLastCalledWith('bye', expect.any(Function));
+    expect(router.back).toHaveBeenCalled();
   });
 });
 

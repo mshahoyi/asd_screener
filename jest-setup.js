@@ -5,3 +5,4 @@ jest.mock('@react-native-async-storage/async-storage', () => mockAsyncStorage);
 jest.mock('expo-sqlite');
 jest.mock('drizzle-orm/expo-sqlite');
 jest.mock('drizzle-orm/expo-sqlite/migrator');
+global.alert = jest.fn();
