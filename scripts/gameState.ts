@@ -11,6 +11,17 @@ export type GameStateEmittedEvent<T extends 'SELECTION' | 'DRAG_SUCCESSFUL'> = {
   DRAG_SUCCESSFUL: {};
 }[T];
 
+export const itemOrder = [
+  'kettle-blue', // order the items appear
+  'kettle-bronze',
+  'kettle-gray',
+  'kettle-red',
+  'socks-cat',
+  'socks-orange',
+  'socks-pink',
+  'socks-stripes',
+];
+
 export const gameMachine = setup({
   types: {
     emitted: {} as GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL'>,
@@ -46,6 +57,7 @@ export const gameMachine = setup({
       correctItem: context.correctItem,
     })),
     emitDragSuccessfulEvent: emit(() => ({ type: 'DRAG_SUCCESSFUL' as const })),
+    incrementCurrentItemIndex: assign({ currentItemIndex: ({ context }) => (context.currentItemIndex + 1) % itemOrder.length }),
   },
 }).createMachine({
   id: 'game',
@@ -57,6 +69,7 @@ export const gameMachine = setup({
     consecutiveCorrectAtCL2: 0,
     correctItem: 'left',
     selectedPosition: '',
+    currentItemIndex: 0,
   },
   states: {
     introduction: {
@@ -108,6 +121,7 @@ export const gameMachine = setup({
             'updateDifficulty',
             'resetCueLevel',
             'assignCorrectItem', // Assign new item for next trial
+            'incrementCurrentItemIndex',
             'emitDragSuccessfulEvent',
           ],
         },

@@ -15,6 +15,7 @@ import { endGame } from '@/db/controller';
 import { Ionicons } from '@expo/vector-icons';
 import GameTimer from '@/components/GameTimer';
 import { useGameTimers } from '@/hooks/useGameTimers';
+import { itemOrder } from '@/scripts/gameState';
 
 // Import all assets dynamically
 type AssetKey = keyof typeof assets;
@@ -40,14 +41,14 @@ const assets = {
   pointRight: require('@/assets/point-right.png'),
   pointTopLeft: require('@/assets/point-top-left.png'),
   pointTopRight: require('@/assets/point-top-right.png'),
-  itemKettleBlue: require('@/assets/item-kettle-blue.png'),
-  itemKettleBronze: require('@/assets/item-kettle-bronze.png'),
-  itemKettleGray: require('@/assets/item-kettle-gray.png'),
-  itemKettleRed: require('@/assets/item-kettle-red.png'),
-  itemSocksCat: require('@/assets/item-socks-cat.png'),
-  itemSocksOrange: require('@/assets/item-socks-orange.png'),
-  itemSocksPink: require('@/assets/item-socks-pink.png'),
-  itemSocksStripes: require('@/assets/item-socks-stripes.png'),
+  'item-kettle-blue': require('@/assets/item-kettle-blue.png'),
+  'item-kettle-bronze': require('@/assets/item-kettle-bronze.png'),
+  'item-kettle-gray': require('@/assets/item-kettle-gray.png'),
+  'item-kettle-red': require('@/assets/item-kettle-red.png'),
+  'item-socks-cat': require('@/assets/item-socks-cat.png'),
+  'item-socks-orange': require('@/assets/item-socks-orange.png'),
+  'item-socks-pink': require('@/assets/item-socks-pink.png'),
+  'item-socks-stripes': require('@/assets/item-socks-stripes.png'),
 };
 
 // Helper to get character image based on state, cue level, and correct item position
@@ -200,6 +201,7 @@ const DraggableItem = ({
 // Helper to get game items based on difficulty and correct item
 const getGameItems = (
   difficultyLevel: number,
+  itemName: string,
   correctItem: string,
   cueLevel: number,
   send: Function,
@@ -207,7 +209,7 @@ const getGameItems = (
   characterBounds: { x: number; y: number; width: number; height: number } | null
 ): React.ReactNode[] => {
   const items: JSX.Element[] = [];
-  const imageKey: AssetKey = 'itemKettleBlue';
+  const imageKey: AssetKey = `item-${itemName}` as AssetKey;
 
   const positions = difficultyLevel === 1 ? ['left', 'right'] : ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
@@ -287,6 +289,7 @@ export default function GameScreen() {
   const characterImageKey = getCharacterImage(state.value as string, state.context.cueLevel, state.context.correctItem);
   const gameItems = getGameItems(
     state.context.difficultyLevel,
+    itemOrder[state.context.currentItemIndex],
     state.context.correctItem,
     state.context.cueLevel,
     send,
