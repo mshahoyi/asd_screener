@@ -351,6 +351,7 @@ export default function GameScreen() {
           <GameTimer />
 
           <Pressable
+            testID="end-session-button"
             onPress={() =>
               endGame(gameIdNumber)
                 .then(() => router.back())

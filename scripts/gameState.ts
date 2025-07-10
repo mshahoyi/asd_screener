@@ -80,9 +80,16 @@ export const gameMachine = setup({
             actions: ['escalateCueLevel', 'resetConsecutiveCorrectAtCL2', 'saveSelectedPosition', 'emitSelectionEvent'],
           },
         ],
-        TIMEOUT: {
-          actions: ['escalateCueLevel', 'resetConsecutiveCorrectAtCL2'],
-        },
+        TIMEOUT: [
+          {
+            guard: ({ context }) => context.cueLevel === 4,
+            target: 'awaitingDrag',
+            actions: ['resetConsecutiveCorrectAtCL2'],
+          },
+          {
+            actions: ['escalateCueLevel', 'resetConsecutiveCorrectAtCL2'],
+          },
+        ],
         SESSION_TIMER_ELAPSED: {
           target: 'sessionEnded',
         },
@@ -108,11 +115,9 @@ export const gameMachine = setup({
           target: 'presentingTrial',
           actions: ['resetCueLevel', 'assignCorrectItem'], // Assign new item for next trial
         },
-        // Ignore other selections while awaiting drag
-        SELECTION: {
-          actions: ['saveSelectedPosition'],
+        SESSION_TIMER_ELAPSED: {
+          target: 'sessionEnded',
         },
-        TIMEOUT: {},
       },
     },
     sessionEnded: {

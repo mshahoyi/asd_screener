@@ -4,7 +4,10 @@ import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
 import { db } from '@/db/index';
 
 export default function RootLayout() {
-  useDrizzleStudio(db);
+  if (__DEV__) {
+    // @ts-ignore
+    useDrizzleStudio(db);
+  }
 
   return (
     <Stack>

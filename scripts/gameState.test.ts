@@ -182,4 +182,18 @@ describe('gameMachine', () => {
     actor.send({ type: 'SELECTION', selectedPosition: 'left' });
     actor.send({ type: 'DRAG_SUCCESSFUL' });
   });
+
+  it('should transition to awaitingDrag on TIMEOUT when cueLevel is 4', () => {
+    const actor = createAndStartGameActor();
+    // Escalate to cue level 4
+    actor.send({ type: 'TIMEOUT' }); // CL2
+    actor.send({ type: 'TIMEOUT' }); // CL3
+    actor.send({ type: 'TIMEOUT' }); // CL4
+    expect(actor.getSnapshot().context.cueLevel).toBe(4);
+
+    // Timeout at CL4
+    actor.send({ type: 'TIMEOUT' });
+    expect(actor.getSnapshot().value).toBe('awaitingDrag');
+    expect(actor.getSnapshot().context.cueLevel).toBe(4);
+  });
 });

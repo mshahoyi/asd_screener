@@ -7,7 +7,9 @@ import { gameMachine } from '@/scripts/gameState';
 
 // Mock the useRouter and useLocalSearchParams hooks
 jest.mock('expo-router', () => ({
-  ...jest.requireActual('expo-router'),
+  Stack: {
+    Screen: ({ children }: { children: React.ReactNode }) => children,
+  },
   useLocalSearchParams: () => ({ participant: 'test-participant' }),
   useRouter: () => ({
     back: jest.fn(),
@@ -113,6 +115,6 @@ describe('GameScreen UI with Assets', () => {
     const { gameActor } = renderWithGameContext(<GameScreen />);
     act(() => gameActor.send({ type: 'START_GAME' }));
     expect(screen.getByTestId('character-image-gazeLeft')).toBeTruthy(); // Wait for initial transition
-    expect(screen.getByText('End Session')).toBeTruthy();
+    expect(screen.getByTestId('end-session-button')).toBeTruthy();
   });
 });
