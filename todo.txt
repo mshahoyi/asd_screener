@@ -1,0 +1,6 @@
+- white background stands out
+- dl1 & dl2 item not aligned at eye level
+- no drag pic
+- negative tap sound incorrect
+- pointing images not finalised
+- does not play bring it to me after right selection
