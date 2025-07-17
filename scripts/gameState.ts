@@ -119,7 +119,7 @@ export const gameMachine = setup({
     awaitingDrag: {
       on: {
         DRAG_SUCCESSFUL: {
-          target: 'presentingTrial',
+          target: 'positiveFeedbackForDragSuccess',
           actions: [
             'incrementTrialCount',
             'incrementConsecutiveCorrectAtCL2',
@@ -136,6 +136,13 @@ export const gameMachine = setup({
         },
         SESSION_TIMER_ELAPSED: {
           target: 'sessionEnded',
+        },
+      },
+    },
+    positiveFeedbackForDragSuccess: {
+      on: {
+        NEXT_TRIAL: {
+          target: 'presentingTrial',
         },
       },
     },

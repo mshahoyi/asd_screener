@@ -1,7 +1,4 @@
-- fix the hmm sound
 - better asset for open hands
-- mistake at last cue level converts to awaiting drag
-- faces front at session ended
 
 
 - make neutral jpg for white bg

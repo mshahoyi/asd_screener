@@ -22,7 +22,8 @@ type AssetKey = keyof typeof assets;
 
 const assets = {
   neutral: require('@/assets/neutral.jpg'),
-  openHands: require('@/assets/open-hands.jpg'),
+  bye: require('@/assets/bye.mp4'),
+  openHands: require('@/assets/open-hands.png'),
   faceBottomLeft: require('@/assets/face-bottom-left.png'),
   faceBottomRight: require('@/assets/face-bottom-right.png'),
   faceLeft: require('@/assets/face-left.png'),
@@ -53,7 +54,7 @@ const assets = {
 
 // Helper to get character image based on state, cue level, and correct item position
 const getCharacterImage = (stateValue: string, cueLevel: number, correctItem: string): AssetKey => {
-  if (stateValue === 'introduction') {
+  if (stateValue === 'introduction' || stateValue === 'sessionEnded' || stateValue === 'positiveFeedbackForDragSuccess') {
     return 'neutral';
   }
   if (stateValue === 'awaitingDrag') {
@@ -247,17 +248,17 @@ const getGameItems = (
   const getPositionStyle = (position: string): any => {
     switch (position) {
       case 'left':
-        return { left: '5%', top: '25%' };
+        return { left: '4%', top: '35%' };
       case 'right':
-        return { right: '5%', top: '25%' };
+        return { right: '4%', top: '35%' };
       case 'top-left':
-        return { left: '5%', top: '15%' };
+        return { left: '4%', top: '15%' };
       case 'top-right':
-        return { right: '5%', top: '15%' };
+        return { right: '4%', top: '15%' };
       case 'bottom-left':
-        return { left: '5%', bottom: '25%' };
+        return { left: '4%', bottom: '20%' };
       case 'bottom-right':
-        return { right: '5%', bottom: '25%' };
+        return { right: '4%', bottom: '20%' };
       default:
         return { left: '45%', top: '45%' };
     }
@@ -374,7 +375,7 @@ export default function GameScreen() {
         )} */}
 
         {/* Items positioned around character */}
-        {state.value !== 'introduction' && <View style={styles.gameArea}>{gameItems}</View>}
+        {state.value !== 'introduction' && state.value !== 'sessionEnded' && <View style={styles.gameArea}>{gameItems}</View>}
 
         {/* End game button */}
         <View
@@ -419,7 +420,7 @@ const styles = StyleSheet.create({
   },
   characterContainer: {
     position: 'absolute',
-    top: '20%',
+    top: '30%',
     left: '35%',
     width: '30%',
     height: '60%',

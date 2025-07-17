@@ -69,7 +69,10 @@ export const useSound = () => {
           break;
 
         case 'DRAG_SUCCESSFUL':
-          playSound('positiveDrag', () => playSound('eyeGaze'));
+          playSound('positiveDrag', () => {
+            send({ type: 'NEXT_TRIAL' });
+            playSound('eyeGaze');
+          });
           break;
 
         case 'TRIAL_TIMEOUT':

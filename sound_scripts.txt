@@ -6,7 +6,7 @@ This document lists the child character's spoken prompts and feedback responses 
 
 ## 🎬 Game Introduction
 
-- "Hi there! I'm Ava. I'm so happy you're here!"
+- "Hi there! I'm Adam. I'm so happy you're here!"
 - "Wanna play a fun game with me?"
 - "I'll show you something I need... Can you find it for me? Let's start!"
 
