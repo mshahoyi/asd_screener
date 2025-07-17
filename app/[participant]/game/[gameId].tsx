@@ -2,6 +2,7 @@ import React, { JSX } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Pressable, LayoutChangeEvent } from 'react-native';
 import { Button } from 'react-native-paper';
 import { Image } from 'expo-image';
+import { ResizeMode, Video } from 'expo-av';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useGame } from '@/scripts/GameContext';
 import { useSound } from '@/hooks/useSound';
@@ -22,8 +23,10 @@ type AssetKey = keyof typeof assets;
 
 const assets = {
   neutral: require('@/assets/neutral.jpg'),
-  bye: require('@/assets/bye.mp4'),
+  bye: require('@/assets/bye.mov'),
   openHands: require('@/assets/open-hands.png'),
+  bgDl1: require('@/assets/bg-2-item.jpeg'),
+  bgDl2: require('@/assets/bg-4-item.jpeg'),
   faceBottomLeft: require('@/assets/face-bottom-left.png'),
   faceBottomRight: require('@/assets/face-bottom-right.png'),
   faceLeft: require('@/assets/face-left.png'),
@@ -345,6 +348,13 @@ export default function GameScreen() {
         onTouchMove={(e) => trackEvent('touch_move', participantId, gameIdNumber, mapTouchEventToProps(e))}
         onTouchEnd={(e) => trackEvent('touch_end', participantId, gameIdNumber, mapTouchEventToProps(e))}
       >
+        {/* Background Image */}
+        <Image
+          source={state.context.difficultyLevel == 1 ? assets.bgDl1 : assets.bgDl2}
+          style={styles.backgroundImage}
+          contentFit="cover"
+        />
+
         {/* {!!__DEV__ && (
           <View style={{ position: 'absolute', top: 40, left: 0, right: 0 }}>
             <Text style={styles.gameInfo}>{state.value as string}</Text>
@@ -354,12 +364,24 @@ export default function GameScreen() {
 
         {/* Character in center */}
         <View style={styles.characterContainer} onLayout={handleCharacterLayout}>
-          <Image
-            testID={`character-image-${characterImageKey}`}
-            source={assets[characterImageKey]}
-            style={styles.characterImage}
-            contentFit="contain"
-          />
+          {state.value === 'sessionEnded' ? (
+            <Video
+              testID="character-video-bye"
+              source={assets.bye}
+              style={styles.characterImage}
+              useNativeControls={false}
+              shouldPlay={true}
+              isLooping={false}
+              resizeMode={ResizeMode.CONTAIN}
+            />
+          ) : (
+            <Image
+              testID={`character-image-${characterImageKey}`}
+              source={assets[characterImageKey]}
+              style={styles.characterImage}
+              contentFit="contain"
+            />
+          )}
         </View>
 
         {/* Drop zone indicator - only visible during drag state */}
@@ -474,5 +496,15 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: -1,
   },
 });
