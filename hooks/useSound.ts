@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 // Define a mapping from sound names to their file paths
 const soundFiles = {
   intro: require('@/assets/intro.m4a'),
+  eyeGaze: require('@/assets/eye-gaze.m4a'),
   looking: require('@/assets/looking.m4a'),
   pointing: require('@/assets/pointing.m4a'),
   shining: require('@/assets/shining.m4a'),
@@ -35,9 +36,11 @@ export const useSound = () => {
     player.play();
     callback.current = cb || null;
   }, []);
-
   useEffect(() => {
-    playSound('intro', () => send({ type: 'START_GAME' }));
+    playSound('intro', () => {
+      playSound('eyeGaze');
+      send({ type: 'START_GAME' });
+    });
   }, []);
 
   useEffect(() => {
@@ -48,12 +51,13 @@ export const useSound = () => {
 
   useEffect(() => {
     const cueNegativeSounds: Record<number, SoundName> = {
+      1: 'eyeGaze',
       2: 'looking',
       3: 'pointing',
       4: 'shining',
     };
 
-    const sub = actor.on('*', (emittedEvent: GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL'>) => {
+    const sub = actor.on('*', (emittedEvent: GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'TIMEOUT'>) => {
       switch (emittedEvent.type) {
         case 'SELECTION':
           const { correctItem, selectedPosition } = emittedEvent as GameStateEmittedEvent<'SELECTION'>;
@@ -65,7 +69,12 @@ export const useSound = () => {
           break;
 
         case 'DRAG_SUCCESSFUL':
-          playSound('positiveDrag');
+          playSound('positiveDrag', () => playSound('eyeGaze'));
+          break;
+
+        case 'TIMEOUT':
+          const { currentCueLevel } = emittedEvent as GameStateEmittedEvent<'TIMEOUT'>;
+          playSound(cueNegativeSounds[currentCueLevel]);
           break;
       }
     });

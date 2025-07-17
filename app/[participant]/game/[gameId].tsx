@@ -21,8 +21,8 @@ import { itemOrder } from '@/scripts/gameState';
 type AssetKey = keyof typeof assets;
 
 const assets = {
-  neutral: require('@/assets/neutral.png'),
-  openHands: require('@/assets/open-hands.png'),
+  neutral: require('@/assets/neutral.jpg'),
+  openHands: require('@/assets/open-hands.jpg'),
   faceBottomLeft: require('@/assets/face-bottom-left.png'),
   faceBottomRight: require('@/assets/face-bottom-right.png'),
   faceLeft: require('@/assets/face-left.png'),
@@ -66,7 +66,7 @@ const getCharacterImage = (stateValue: string, cueLevel: number, correctItem: st
   if (cueLevel === 1) {
     // At CL1, character gazes at correct item
     directionToUse = correctItem;
-  } else if (cueLevel === 2 || cueLevel === 3) {
+  } else {
     // At CL2 and CL3, character faces/points opposite direction for basic left/right
     if (correctItem === 'left') {
       directionToUse = 'right';
@@ -76,9 +76,6 @@ const getCharacterImage = (stateValue: string, cueLevel: number, correctItem: st
       // For other positions, use the correct item direction
       directionToUse = correctItem;
     }
-  } else {
-    // For CL4 and others, use correct item direction
-    directionToUse = correctItem;
   }
 
   const formattedDirection = directionToUse.split('-').map(capitalize).join('');
@@ -91,7 +88,7 @@ const getCharacterImage = (stateValue: string, cueLevel: number, correctItem: st
     case 3:
       return `point${formattedDirection}` as AssetKey;
     case 4:
-      return 'neutral'; // Glow is on the item, character is neutral
+      return `point${formattedDirection}` as AssetKey;
     default:
       return 'neutral';
   }
@@ -216,17 +213,17 @@ const getGameItems = (
   const getPositionStyle = (position: string): any => {
     switch (position) {
       case 'left':
-        return { left: '5%', top: '45%' };
+        return { left: '5%', top: '25%' };
       case 'right':
-        return { right: '5%', top: '45%' };
+        return { right: '5%', top: '25%' };
       case 'top-left':
         return { left: '5%', top: '10%' };
       case 'top-right':
         return { right: '5%', top: '10%' };
       case 'bottom-left':
-        return { left: '5%', bottom: '10%' };
+        return { left: '5%', bottom: '20%' };
       case 'bottom-right':
-        return { right: '5%', bottom: '10%' };
+        return { right: '5%', bottom: '20%' };
       default:
         return { left: '45%', top: '45%' };
     }
@@ -313,12 +310,12 @@ export default function GameScreen() {
         onTouchMove={(e) => trackEvent('touch_move', participantId, gameIdNumber, mapTouchEventToProps(e))}
         onTouchEnd={(e) => trackEvent('touch_end', participantId, gameIdNumber, mapTouchEventToProps(e))}
       >
-        {!!__DEV__ && (
+        {/* {!!__DEV__ && (
           <View style={{ position: 'absolute', top: 40, left: 0, right: 0 }}>
             <Text style={styles.gameInfo}>{state.value as string}</Text>
             <Text style={styles.gameInfo}>{JSON.stringify(state.context, null, 2)}</Text>
           </View>
-        )}
+        )} */}
 
         {/* Character in center */}
         <View style={styles.characterContainer} onLayout={handleCharacterLayout}>
@@ -429,7 +426,7 @@ const styles = StyleSheet.create({
   },
   gameItemContainer: {
     position: 'absolute',
-    width: '15%', // Increased from 10% to make items more visible
+    width: '20%', // Increased from 10% to make items more visible
     aspectRatio: 1,
   },
   gameItemTouchable: {

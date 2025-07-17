@@ -1,3 +1,11 @@
+- fix sparkling
+- fix the hmm sound
+- better asset for open hands
+- drop area too broad
+- mistake at last cue level converts to awaiting drag
+- faces front at session ended
+
+
 - make neutral jpg for white bg
 - at cl4, picture resets to neutral, make it not reset
 - play eye gaze sound after successfull drag feedback

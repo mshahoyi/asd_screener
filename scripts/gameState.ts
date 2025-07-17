@@ -4,11 +4,12 @@ import { createMachine, assign, setup, emit } from 'xstate';
 const difficulty1Positions = ['left', 'right'];
 const difficulty2Positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
-export type GameStateEmittedEvent<T extends 'SELECTION' | 'DRAG_SUCCESSFUL'> = {
+export type GameStateEmittedEvent<T extends 'SELECTION' | 'DRAG_SUCCESSFUL' | 'TIMEOUT'> = {
   type: T;
 } & {
   SELECTION: { selectedPosition: string; correctItem: string };
   DRAG_SUCCESSFUL: {};
+  TIMEOUT: { currentCueLevel: number };
 }[T];
 
 export const itemOrder = [
@@ -24,7 +25,7 @@ export const itemOrder = [
 
 export const gameMachine = setup({
   types: {
-    emitted: {} as GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL'>,
+    emitted: {} as GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'TIMEOUT'>,
   },
   actions: {
     updateDifficulty: assign(({ context }) => {
@@ -58,6 +59,7 @@ export const gameMachine = setup({
     })),
     emitDragSuccessfulEvent: emit(() => ({ type: 'DRAG_SUCCESSFUL' as const })),
     incrementCurrentItemIndex: assign({ currentItemIndex: ({ context }) => (context.currentItemIndex + 1) % itemOrder.length }),
+    emitTimeoutEvent: emit(({ context }) => ({ type: 'TIMEOUT' as const, currentCueLevel: context.cueLevel })),
   },
 }).createMachine({
   id: 'game',
@@ -100,7 +102,7 @@ export const gameMachine = setup({
             actions: ['resetConsecutiveCorrectAtCL2'],
           },
           {
-            actions: ['escalateCueLevel', 'resetConsecutiveCorrectAtCL2'],
+            actions: ['escalateCueLevel', 'resetConsecutiveCorrectAtCL2', 'emitTimeoutEvent'],
           },
         ],
         SESSION_TIMER_ELAPSED: {
