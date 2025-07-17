@@ -4,12 +4,12 @@ import { createMachine, assign, setup, emit } from 'xstate';
 const difficulty1Positions = ['left', 'right'];
 const difficulty2Positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
-export type GameStateEmittedEvent<T extends 'SELECTION' | 'DRAG_SUCCESSFUL' | 'TIMEOUT'> = {
+export type GameStateEmittedEvent<T extends 'SELECTION' | 'DRAG_SUCCESSFUL' | 'TRIAL_TIMEOUT'> = {
   type: T;
 } & {
   SELECTION: { selectedPosition: string; correctItem: string };
   DRAG_SUCCESSFUL: {};
-  TIMEOUT: { currentCueLevel: number };
+  TRIAL_TIMEOUT: { currentCueLevel: number };
 }[T];
 
 export const itemOrder = [
@@ -25,7 +25,7 @@ export const itemOrder = [
 
 export const gameMachine = setup({
   types: {
-    emitted: {} as GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'TIMEOUT'>,
+    emitted: {} as GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'TRIAL_TIMEOUT'>,
   },
   actions: {
     updateDifficulty: assign(({ context }) => {
@@ -59,7 +59,10 @@ export const gameMachine = setup({
     })),
     emitDragSuccessfulEvent: emit(() => ({ type: 'DRAG_SUCCESSFUL' as const })),
     incrementCurrentItemIndex: assign({ currentItemIndex: ({ context }) => (context.currentItemIndex + 1) % itemOrder.length }),
-    emitTimeoutEvent: emit(({ context }) => ({ type: 'TIMEOUT' as const, currentCueLevel: context.cueLevel })),
+    emitTimeoutEvent: emit(({ context }) => ({
+      type: 'TRIAL_TIMEOUT' as const,
+      currentCueLevel: context.cueLevel,
+    })),
   },
 }).createMachine({
   id: 'game',
@@ -99,7 +102,7 @@ export const gameMachine = setup({
           {
             guard: ({ context }) => context.cueLevel === 4,
             target: 'awaitingDrag',
-            actions: ['resetConsecutiveCorrectAtCL2'],
+            actions: ['resetConsecutiveCorrectAtCL2', 'emitTimeoutEvent'],
           },
           {
             actions: ['escalateCueLevel', 'resetConsecutiveCorrectAtCL2', 'emitTimeoutEvent'],

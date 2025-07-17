@@ -57,7 +57,7 @@ export const useSound = () => {
       4: 'shining',
     };
 
-    const sub = actor.on('*', (emittedEvent: GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'TIMEOUT'>) => {
+    const sub = actor.on('*', (emittedEvent: GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'TRIAL_TIMEOUT'>) => {
       switch (emittedEvent.type) {
         case 'SELECTION':
           const { correctItem, selectedPosition } = emittedEvent as GameStateEmittedEvent<'SELECTION'>;
@@ -72,9 +72,13 @@ export const useSound = () => {
           playSound('positiveDrag', () => playSound('eyeGaze'));
           break;
 
-        case 'TIMEOUT':
-          const { currentCueLevel } = emittedEvent as GameStateEmittedEvent<'TIMEOUT'>;
-          playSound(cueNegativeSounds[currentCueLevel]);
+        case 'TRIAL_TIMEOUT':
+          const { currentCueLevel } = emittedEvent as GameStateEmittedEvent<'TRIAL_TIMEOUT'>;
+          if (actor.getSnapshot().value === 'presentingTrial') {
+            playSound(cueNegativeSounds[currentCueLevel]);
+          } else {
+            playSound('drag');
+          }
           break;
       }
     });
