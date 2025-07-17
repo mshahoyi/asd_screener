@@ -6,7 +6,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useGame } from '@/scripts/GameContext';
 import { useSound } from '@/hooks/useSound';
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withRepeat, withTiming, interpolate } from 'react-native-reanimated';
 import { useDragHandler } from '@/hooks/useDragHandler';
 import { useGameEvents } from '@/hooks/useGameEvents';
 import { trackEvent } from '@/scripts/analytics';
@@ -121,6 +121,22 @@ const DraggableItem = ({
   const y = useSharedValue(0);
   const [itemBounds, setItemBounds] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
+  // Animation for glowing effect
+  const glowAnimation = useSharedValue(0);
+
+  // Start/stop glow animation based on isGlowing prop
+  React.useEffect(() => {
+    if (isGlowing) {
+      glowAnimation.value = withRepeat(
+        withTiming(1, { duration: 800 }),
+        -1, // infinite
+        true // reverse
+      );
+    } else {
+      glowAnimation.value = withTiming(0, { duration: 200 });
+    }
+  }, [isGlowing]);
+
   React.useEffect(() => {
     console.debug('=== DRAGGABLE ITEM STATE CHANGE ===');
     console.debug('DraggableItem state:', { isAwaitingDrag, isCorrect, imageKey, itemPosition });
@@ -173,6 +189,22 @@ const DraggableItem = ({
     };
   });
 
+  // Animated glow style
+  const glowStyle = useAnimatedStyle(() => {
+    const scale = interpolate(glowAnimation.value, [0, 1], [1, 1.1]);
+    const shadowOpacity = interpolate(glowAnimation.value, [0, 1], [0.3, 0.8]);
+    const shadowRadius = interpolate(glowAnimation.value, [0, 1], [16, 32]);
+
+    return {
+      transform: [{ scale }],
+      shadowColor: '#FFD700', // Gold color
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: isGlowing ? shadowOpacity : 0,
+      shadowRadius: isGlowing ? shadowRadius : 0,
+      elevation: isGlowing ? 8 : 0, // For Android
+    };
+  });
+
   // Check if we're on web (for conditional behavior)
   const isWeb = typeof window !== 'undefined' && window.document;
 
@@ -180,15 +212,17 @@ const DraggableItem = ({
     <View onLayout={handleItemLayout} style={[styles.gameItemContainer, positionStyle]}>
       <GestureDetector gesture={gesture}>
         <Animated.View style={[animatedStyle, { height: '100%', width: '100%' }]}>
-          <TouchableOpacity
-            ref={itemRef}
-            onPress={onSelect}
-            style={[styles.gameItemTouchable, isGlowing && styles.glowingItem]}
-            testID={`game-item-${itemPosition}`}
-            disabled={isAwaitingDrag && !isWeb} // Don't disable on web since we handle drag differently
-          >
-            <Image testID={`game-item-${imageKey}`} source={assets[imageKey]} style={styles.gameItemImage} contentFit="contain" />
-          </TouchableOpacity>
+          <Animated.View style={[glowStyle, { height: '100%', width: '100%' }]}>
+            <TouchableOpacity
+              ref={itemRef}
+              onPress={onSelect}
+              style={[styles.gameItemTouchable]}
+              testID={`game-item-${itemPosition}`}
+              disabled={isAwaitingDrag && !isWeb} // Don't disable on web since we handle drag differently
+            >
+              <Image testID={`game-item-${imageKey}`} source={assets[imageKey]} style={styles.gameItemImage} contentFit="contain" />
+            </TouchableOpacity>
+          </Animated.View>
         </Animated.View>
       </GestureDetector>
     </View>
@@ -432,15 +466,11 @@ const styles = StyleSheet.create({
   gameItemTouchable: {
     width: '100%',
     height: '100%',
+    borderRadius: 10, // Add border radius for better shadow effect
   },
   gameItemImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
-  },
-  glowingItem: {
-    borderWidth: 3,
-    borderColor: 'gold',
-    borderRadius: 10,
   },
 });
