@@ -1,3 +1,10 @@
+- make neutral jpg for white bg
+- at cl4, picture resets to neutral, make it not reset
+- play eye gaze sound after successfull drag feedback
+- play tap what i am looking at after intro
+- at dl1, looking and pointing are reverse
+- replace the false tap sound
+
 - white background stands out
 - dl1 & dl2 item not aligned at eye level
 - no drag pic

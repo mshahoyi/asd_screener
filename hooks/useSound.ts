@@ -30,9 +30,8 @@ export const useSound = () => {
   }, [status.didJustFinish]);
 
   const playSound = useCallback((soundName: SoundName, cb?: () => unknown) => {
-    player.pause();
-    player.replace(soundFiles[soundName]);
     player.seekTo(0);
+    player.replace(soundFiles[soundName]);
     player.play();
     callback.current = cb || null;
   }, []);
@@ -42,7 +41,6 @@ export const useSound = () => {
   }, []);
 
   useEffect(() => {
-    console.debug('########################## finished', state.value);
     if (state.value === 'sessionEnded') {
       playSound('bye', () => router.back());
     }

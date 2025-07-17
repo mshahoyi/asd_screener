@@ -123,6 +123,14 @@ describe('useSound', () => {
     expect(mockUseCallbackReturn).toHaveBeenLastCalledWith('bye', expect.any(Function));
     expect(router.back).toHaveBeenCalled();
   });
+
+  it('plays eye gaze sound after intro finishes', () => {
+    const { gameActor, rerender } = renderWithGameContext(() => useSound());
+
+    act(() => gameActor.send({ type: 'START_GAME' }));
+    finishSound(rerender);
+    expect(mockUseCallbackReturn).toHaveBeenLastCalledWith('looking');
+  });
 });
 
 const finishSound = (rerender: (...args: unknown[]) => unknown) => {
