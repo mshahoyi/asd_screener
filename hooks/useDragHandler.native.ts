@@ -39,21 +39,11 @@ export function useDragHandler({
         bottom: characterBounds.y + characterBounds.height,
       };
 
-      const itemRect = {
-        left: centerX - itemBounds.width / 2,
-        top: centerY - itemBounds.height / 2,
-        right: centerX + itemBounds.width / 2,
-        bottom: centerY + itemBounds.height / 2,
-      };
-
-      console.debug('Character rectangle:', characterRect);
-      console.debug('Item rectangle:', itemRect);
-
       const isOverlapping = !(
-        itemRect.right < characterRect.left ||
-        itemRect.left > characterRect.right ||
-        itemRect.bottom < characterRect.top ||
-        itemRect.top > characterRect.bottom
+        centerX < characterRect.left ||
+        centerX > characterRect.right ||
+        centerY < characterRect.top ||
+        centerY > characterRect.bottom
       );
 
       console.debug('Rectangle overlap check:', isOverlapping);

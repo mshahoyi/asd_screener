@@ -251,13 +251,13 @@ const getGameItems = (
       case 'right':
         return { right: '5%', top: '25%' };
       case 'top-left':
-        return { left: '5%', top: '10%' };
+        return { left: '5%', top: '15%' };
       case 'top-right':
-        return { right: '5%', top: '10%' };
+        return { right: '5%', top: '15%' };
       case 'bottom-left':
-        return { left: '5%', bottom: '20%' };
+        return { left: '5%', bottom: '25%' };
       case 'bottom-right':
-        return { right: '5%', bottom: '20%' };
+        return { right: '5%', bottom: '25%' };
       default:
         return { left: '45%', top: '45%' };
     }
@@ -362,11 +362,16 @@ export default function GameScreen() {
         </View>
 
         {/* Drop zone indicator - only visible during drag state */}
-        {isAwaitingDrag && (
-          <View style={styles.dropZoneIndicator}>
+        {/* {isAwaitingDrag && !!characterBounds && (
+          <View
+            style={[
+              styles.dropZoneIndicator,
+              { top: characterBounds?.y, left: characterBounds?.x, width: characterBounds?.width, height: characterBounds?.height },
+            ]}
+          >
             <Text style={styles.dropZoneText}>Drop Here</Text>
           </View>
-        )}
+        )} */}
 
         {/* Items positioned around character */}
         {state.value !== 'introduction' && <View style={styles.gameArea}>{gameItems}</View>}
@@ -405,7 +410,7 @@ export default function GameScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: 'white',
   },
   gameInfo: {
     fontSize: 16,
@@ -415,8 +420,8 @@ const styles = StyleSheet.create({
   characterContainer: {
     position: 'absolute',
     top: '20%',
-    left: '20%',
-    width: '60%',
+    left: '35%',
+    width: '30%',
     height: '60%',
     justifyContent: 'center',
     alignItems: 'center',
@@ -429,10 +434,6 @@ const styles = StyleSheet.create({
   },
   dropZoneIndicator: {
     position: 'absolute',
-    top: '20%',
-    left: '20%',
-    width: '60%',
-    height: '60%',
     backgroundColor: 'rgba(128, 128, 128, 0.3)', // Faint gray with transparency
     borderWidth: 2,
     borderColor: 'rgba(128, 128, 128, 0.5)',
@@ -460,7 +461,7 @@ const styles = StyleSheet.create({
   },
   gameItemContainer: {
     position: 'absolute',
-    width: '20%', // Increased from 10% to make items more visible
+    width: '15%', // Increased from 10% to make items more visible
     aspectRatio: 1,
   },
   gameItemTouchable: {
