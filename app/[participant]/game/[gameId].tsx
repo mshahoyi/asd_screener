@@ -10,7 +10,7 @@ import { useDragHandler } from '@/hooks/useDragHandler';
 import { useGameEvents } from '@/hooks/useGameEvents';
 import { trackEvent } from '@/scripts/analytics';
 import { mapTouchEventToProps } from '@/scripts/utils';
-import { endGame } from '@/db/controller';
+import { endGame, saveItemClick } from '@/db/controller';
 import { Ionicons } from '@expo/vector-icons';
 import GameTimer from '@/components/GameTimer';
 import { useGameTimers } from '@/hooks/useGameTimers';
@@ -179,7 +179,9 @@ const getGameItems = (
   cueLevel: number,
   send: Function,
   isAwaitingDrag: boolean,
-  characterBounds: { x: number; y: number; width: number; height: number } | null
+  characterBounds: { x: number; y: number; width: number; height: number } | null,
+  participantId: number,
+  gameId: number
 ): React.ReactNode[] => {
   const items: JSX.Element[] = [];
   const imageKey: AssetKey = `item-${itemName}` as AssetKey;
@@ -215,7 +217,19 @@ const getGameItems = (
         isCorrect={isCorrect}
         isGlowing={isGlowing}
         imageKey={imageKey}
-        onSelect={() => send({ type: 'SELECTION', selectedPosition: position })}
+        onSelect={() => {
+          saveItemClick({
+            participantId,
+            gameId,
+            item: itemName,
+            position,
+            correctPosition: correctItem,
+            cueLevel,
+            difficultyLevel,
+          });
+
+          send({ type: 'SELECTION', selectedPosition: position });
+        }}
         isAwaitingDrag={isAwaitingDrag}
         send={send}
         characterBounds={characterBounds}
@@ -265,7 +279,9 @@ export default function GameScreen() {
     state.context.cueLevel,
     send,
     isAwaitingDrag,
-    characterBounds
+    characterBounds,
+    participantId,
+    gameIdNumber
   );
 
   return (

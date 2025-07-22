@@ -4,6 +4,7 @@ import { eq, count } from 'drizzle-orm';
 
 export type NewParticipant = typeof participants.$inferInsert;
 export type Participant = typeof participants.$inferSelect;
+export type NewItemClick = typeof itemClicks.$inferInsert;
 
 export type ParticipantWithCounts = Participant & {
   gameCount: number;
@@ -70,4 +71,8 @@ export const startGame = async (participantId: number) => {
 export const endGame = async (gameId: number) => {
   console.log('ending game', gameId);
   return await db.update(games).set({ endedAt: new Date() }).where(eq(games.id, gameId));
+};
+
+export const saveItemClick = (itemClick: NewItemClick) => {
+  return db.insert(itemClicks).values(itemClick).returning({ id: itemClicks.id }).catch(alert);
 };

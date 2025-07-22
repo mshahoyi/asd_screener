@@ -4,7 +4,8 @@ import { Image } from 'expo-image';
 import { VideoPlayer, VideoView, createVideoPlayer, useVideoPlayer } from 'expo-video';
 import { useGame } from '@/scripts/GameContext';
 import { GameStateEmittedEvent } from '@/scripts/gameState';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { endGame } from '@/db/controller';
 
 // Define a mapping from video names to their file paths
 const videoFiles = {
@@ -53,6 +54,8 @@ interface GameVideoProps {
 
 export const GameVideo: React.FC<GameVideoProps> = ({ handleCharacterLayout }) => {
   const [state, send, actor] = useGame();
+  const { gameId } = useLocalSearchParams<{ gameId: string }>();
+  const gameIdNumber = parseInt(gameId as string, 10);
   const currentVideo = useRef<VideoName>('intro');
   const onFinish = useRef<() => void>(null);
   const player = useRef<VideoPlayer>(null);
@@ -101,9 +104,17 @@ export const GameVideo: React.FC<GameVideoProps> = ({ handleCharacterLayout }) =
   // Handle session end
   useEffect(() => {
     if (state.value === 'sessionEnded') {
-      playVideo('bye', () => router.back());
+      playVideo('bye', () => {
+        // Save game ending time to database
+        endGame(gameIdNumber)
+          .then(() => router.back())
+          .catch((error) => {
+            console.error('Error ending game:', error);
+            alert(error);
+          });
+      });
     }
-  }, [state.value, playVideo]);
+  }, [state.value, playVideo, gameIdNumber]);
 
   // Handle game events
   useEffect(() => {
@@ -166,7 +177,7 @@ export const GameVideo: React.FC<GameVideoProps> = ({ handleCharacterLayout }) =
         player={player.current!}
         allowsFullscreen={false}
         allowsPictureInPicture={false}
-        pointerEvents="none"
+        nativeControls={false}
       />
     </View>
   );
