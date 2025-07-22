@@ -42,11 +42,6 @@ const videoFiles = {
 
 export type VideoName = keyof typeof videoFiles;
 
-const assets = {
-  neutral: require('@/assets/neutral.jpg'),
-  openHands: require('@/assets/open-hands.png'),
-};
-
 const getDirectionalVideoName = (baseName: string, correctItem: string): VideoName => {
   const videoKey = `${baseName}-${correctItem}` as VideoName;
   return videoKey;
@@ -166,17 +161,7 @@ export const GameVideo: React.FC<GameVideoProps> = ({ handleCharacterLayout }) =
 
   return (
     <View style={styles.characterContainer} onLayout={handleCharacterLayout}>
-      {player.current ? (
-        <VideoView
-          style={styles.characterImage}
-          player={player.current}
-          allowsFullscreen={false}
-          allowsPictureInPicture={false}
-          // testID={`character-video-${videoState.currentVideo}`}
-        />
-      ) : (
-        <Image testID="character-image-neutral" source={assets.neutral} style={styles.characterImage} contentFit="contain" />
-      )}
+      <VideoView style={styles.characterImage} player={player.current!} allowsFullscreen={false} allowsPictureInPicture={false} />
     </View>
   );
 };
