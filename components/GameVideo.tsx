@@ -6,6 +6,7 @@ import { useGame } from '@/scripts/GameContext';
 import { GameStateEmittedEvent } from '@/scripts/gameState';
 import { router, useLocalSearchParams } from 'expo-router';
 import { endGame } from '@/db/controller';
+import { trackEvent } from '@/scripts/analytics';
 
 // Define a mapping from video names to their file paths
 const videoFiles = {
@@ -54,8 +55,9 @@ interface GameVideoProps {
 
 export const GameVideo: React.FC<GameVideoProps> = ({ handleCharacterLayout }) => {
   const [state, send, actor] = useGame();
-  const { gameId } = useLocalSearchParams<{ gameId: string }>();
+  const { gameId, participant } = useLocalSearchParams<{ gameId: string; participant: string }>();
   const gameIdNumber = parseInt(gameId as string, 10);
+  const participantId = parseInt(participant as string, 10);
   const currentVideo = useRef<VideoName>('intro');
   const onFinish = useRef<() => void>(null);
   const player = useRef<VideoPlayer>(null);
@@ -105,6 +107,13 @@ export const GameVideo: React.FC<GameVideoProps> = ({ handleCharacterLayout }) =
   useEffect(() => {
     if (state.value === 'sessionEnded') {
       playVideo('bye', () => {
+        // Track natural game end
+        trackEvent('natural_game_end', participantId, gameIdNumber, {
+          ...actor.getSnapshot().context,
+          gameState: actor.getSnapshot().value,
+          timestamp: Date.now(),
+        });
+
         // Save game ending time to database
         endGame(gameIdNumber)
           .then(() => router.back())
@@ -114,7 +123,7 @@ export const GameVideo: React.FC<GameVideoProps> = ({ handleCharacterLayout }) =
           });
       });
     }
-  }, [state.value, playVideo, gameIdNumber]);
+  }, [state.value, playVideo, gameIdNumber, participantId]);
 
   // Handle game events
   useEffect(() => {

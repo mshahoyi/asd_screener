@@ -1,5 +1,5 @@
 import React, { JSX } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Pressable, LayoutChangeEvent } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Pressable, LayoutChangeEvent, AppState } from 'react-native';
 import { Button } from 'react-native-paper';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -248,7 +248,7 @@ export default function GameScreen() {
   const { participant, gameId } = useLocalSearchParams<{ participant: string; gameId: string }>();
   const participantId = parseInt(participant, 10);
   const gameIdNumber = parseInt(gameId, 10);
-  const [state, send] = useGame();
+  const [state, send, actor] = useGame();
   useGameEvents(participantId, gameIdNumber);
   const [characterBounds, setCharacterBounds] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
@@ -261,6 +261,59 @@ export default function GameScreen() {
     console.debug('Send function type:', typeof send);
     console.debug('=== END GAME STATE CHANGE ===');
   }, [state]);
+
+  // Track app state changes (background/foreground)
+  React.useEffect(() => {
+    // Track game screen mount
+    trackEvent('game_screen_mount', participantId, gameIdNumber, {
+      ...actor.getSnapshot().context,
+      gameState: actor.getSnapshot().value,
+      timestamp: Date.now(),
+    });
+
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'background') {
+        trackEvent('app_background', participantId, gameIdNumber, {
+          ...actor.getSnapshot().context,
+          gameState: actor.getSnapshot().value,
+          timestamp: Date.now(),
+        });
+      } else if (nextAppState === 'active') {
+        trackEvent('app_foreground', participantId, gameIdNumber, {
+          ...actor.getSnapshot().context,
+          gameState: actor.getSnapshot().value,
+          timestamp: Date.now(),
+        });
+      } else if (nextAppState === 'inactive') {
+        trackEvent('app_inactive', participantId, gameIdNumber, {
+          ...actor.getSnapshot().context,
+          gameState: actor.getSnapshot().value,
+          timestamp: Date.now(),
+        });
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    // Track initial app state
+    trackEvent('app_state_initial', participantId, gameIdNumber, {
+      ...actor.getSnapshot().context,
+      appState: AppState.currentState,
+      gameState: actor.getSnapshot().value,
+      timestamp: Date.now(),
+    });
+
+    return () => {
+      // Track game screen unmount
+      trackEvent('game_screen_unmount', participantId, gameIdNumber, {
+        ...actor.getSnapshot().context,
+        gameState: actor.getSnapshot().value,
+        timestamp: Date.now(),
+      });
+
+      subscription?.remove();
+    };
+  }, []);
 
   const handleCharacterLayout = React.useCallback((event: any) => {
     console.debug('=== CHARACTER LAYOUT ===');
@@ -330,11 +383,17 @@ export default function GameScreen() {
 
           <Pressable
             testID="end-session-button"
-            onPress={() =>
+            onPress={() => {
+              trackEvent('manual_game_end', participantId, gameIdNumber, {
+                ...actor.getSnapshot().context,
+                gameState: state.value,
+                timestamp: Date.now(),
+              });
+
               endGame(gameIdNumber)
                 .then(() => router.back())
-                .catch(alert)
-            }
+                .catch(alert);
+            }}
           >
             <Ionicons name="close" size={32} color="black" />
           </Pressable>
