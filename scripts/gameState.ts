@@ -4,9 +4,10 @@ import { createMachine, assign, setup, emit } from 'xstate';
 const difficulty1Positions = ['left', 'right'];
 const difficulty2Positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
-export type GameStateEmittedEvent<T extends 'SELECTION' | 'DRAG_SUCCESSFUL' | 'TRIAL_TIMEOUT'> = {
+export type GameStateEmittedEvent<T extends 'SELECTION' | 'DRAG_SUCCESSFUL' | 'TRIAL_TIMEOUT' | 'GAME_STARTED'> = {
   type: T;
 } & {
+  GAME_STARTED: {};
   SELECTION: { selectedPosition: string; correctItem: string };
   DRAG_SUCCESSFUL: {};
   TRIAL_TIMEOUT: { currentCueLevel: number };
@@ -25,7 +26,7 @@ export const itemOrder = [
 
 export const gameMachine = setup({
   types: {
-    emitted: {} as GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'TRIAL_TIMEOUT'>,
+    emitted: {} as GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'TRIAL_TIMEOUT' | 'GAME_STARTED'>,
   },
   actions: {
     updateDifficulty: assign(({ context }) => {
@@ -63,6 +64,7 @@ export const gameMachine = setup({
       type: 'TRIAL_TIMEOUT' as const,
       currentCueLevel: context.cueLevel,
     })),
+    emitGameStartedEvent: emit(() => ({ type: 'GAME_STARTED' as const })),
   },
 }).createMachine({
   id: 'game',
@@ -81,7 +83,7 @@ export const gameMachine = setup({
       on: {
         START_GAME: {
           target: 'presentingTrial',
-          actions: 'assignCorrectItem',
+          actions: ['assignCorrectItem', 'emitGameStartedEvent'],
         },
       },
     },

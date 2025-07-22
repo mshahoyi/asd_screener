@@ -32,6 +32,7 @@
     "expo-sqlite": "~15.2.14",
     "expo-status-bar": "~2.2.3",
     "expo-updates": "~0.28.16",
+    "expo-video": "^2.2.2",
     "jszip": "^3.10.1",
     "nanoid": "^5.1.5",
     "react": "19.0.0",

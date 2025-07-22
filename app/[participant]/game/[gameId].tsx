@@ -2,10 +2,8 @@ import React, { JSX } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Pressable, LayoutChangeEvent } from 'react-native';
 import { Button } from 'react-native-paper';
 import { Image } from 'expo-image';
-import { ResizeMode, Video } from 'expo-av';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useGame } from '@/scripts/GameContext';
-import { useSound } from '@/hooks/useSound';
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withRepeat, withTiming, interpolate } from 'react-native-reanimated';
 import { useDragHandler } from '@/hooks/useDragHandler';
@@ -17,13 +15,14 @@ import { Ionicons } from '@expo/vector-icons';
 import GameTimer from '@/components/GameTimer';
 import { useGameTimers } from '@/hooks/useGameTimers';
 import { itemOrder } from '@/scripts/gameState';
+import { GameVideo } from '@/components/GameVideo';
 
 // Import all assets dynamically
 type AssetKey = keyof typeof assets;
 
 const assets = {
   // videos
-  intro: require('@/assets/intro-1.mov'),
+  intro: require('@/assets/intro.mov'),
   'gaze-left': require('@/assets/gaze-left.mov'),
   'gaze-right': require('@/assets/gaze-right.mov'),
   'gaze-top-left': require('@/assets/gaze top left.mov'),
@@ -85,49 +84,6 @@ const assets = {
   'item-socks-orange': require('@/assets/item-socks-orange.png'),
   'item-socks-pink': require('@/assets/item-socks-pink.png'),
   'item-socks-stripes': require('@/assets/item-socks-stripes.png'),
-};
-
-// Helper to get character image based on state, cue level, and correct item position
-const getCharacterImage = (stateValue: string, cueLevel: number, correctItem: string): AssetKey => {
-  if (stateValue === 'introduction' || stateValue === 'sessionEnded' || stateValue === 'positiveFeedbackForDragSuccess') {
-    return 'neutral';
-  }
-  if (stateValue === 'awaitingDrag') {
-    return 'openHands';
-  }
-
-  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
-  let directionToUse;
-  if (cueLevel === 1) {
-    // At CL1, character gazes at correct item
-    directionToUse = correctItem;
-  } else {
-    // At CL2 and CL3, character faces/points opposite direction for basic left/right
-    if (correctItem === 'left') {
-      directionToUse = 'right';
-    } else if (correctItem === 'right') {
-      directionToUse = 'left';
-    } else {
-      // For other positions, use the correct item direction
-      directionToUse = correctItem;
-    }
-  }
-
-  const formattedDirection = directionToUse.split('-').map(capitalize).join('');
-
-  switch (cueLevel) {
-    case 1:
-      return `gaze${formattedDirection}` as AssetKey;
-    case 2:
-      return `face${formattedDirection}` as AssetKey;
-    case 3:
-      return `point${formattedDirection}` as AssetKey;
-    case 4:
-      return `point${formattedDirection}` as AssetKey;
-    default:
-      return 'neutral';
-  }
 };
 
 interface DraggableItemProps {
@@ -329,7 +285,6 @@ export default function GameScreen() {
   const participantId = parseInt(participant, 10);
   const gameIdNumber = parseInt(gameId, 10);
   const [state, send] = useGame();
-  useSound();
   useGameEvents(participantId, gameIdNumber);
   const [characterBounds, setCharacterBounds] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
@@ -353,7 +308,6 @@ export default function GameScreen() {
   }, []);
 
   const isAwaitingDrag = state.matches('awaitingDrag');
-  const characterImageKey = getCharacterImage(state.value as string, state.context.cueLevel, state.context.correctItem);
   const gameItems = getGameItems(
     state.context.difficultyLevel,
     itemOrder[state.context.currentItemIndex],
@@ -387,46 +341,8 @@ export default function GameScreen() {
           contentFit="cover"
         />
 
-        {/* {!!__DEV__ && (
-          <View style={{ position: 'absolute', top: 40, left: 0, right: 0 }}>
-            <Text style={styles.gameInfo}>{state.value as string}</Text>
-            <Text style={styles.gameInfo}>{JSON.stringify(state.context, null, 2)}</Text>
-          </View>
-        )} */}
-
         {/* Character in center */}
-        <View style={styles.characterContainer} onLayout={handleCharacterLayout}>
-          {state.value === 'sessionEnded' ? (
-            <Video
-              testID="character-video-bye"
-              source={assets.bye}
-              style={styles.characterImage}
-              useNativeControls={false}
-              shouldPlay={true}
-              isLooping={false}
-              resizeMode={ResizeMode.CONTAIN}
-            />
-          ) : (
-            <Image
-              testID={`character-image-${characterImageKey}`}
-              source={assets[characterImageKey]}
-              style={styles.characterImage}
-              contentFit="contain"
-            />
-          )}
-        </View>
-
-        {/* Drop zone indicator - only visible during drag state */}
-        {/* {isAwaitingDrag && !!characterBounds && (
-          <View
-            style={[
-              styles.dropZoneIndicator,
-              { top: characterBounds?.y, left: characterBounds?.x, width: characterBounds?.width, height: characterBounds?.height },
-            ]}
-          >
-            <Text style={styles.dropZoneText}>Drop Here</Text>
-          </View>
-        )} */}
+        <GameVideo handleCharacterLayout={handleCharacterLayout} />
 
         {/* Items positioned around character */}
         {state.value !== 'introduction' && state.value !== 'sessionEnded' && <View style={styles.gameArea}>{gameItems}</View>}
@@ -471,21 +387,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginVertical: 2,
-  },
-  characterContainer: {
-    position: 'absolute',
-    top: '30%',
-    left: '35%',
-    width: '30%',
-    height: '60%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 0,
-  },
-  characterImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
   },
   dropZoneIndicator: {
     position: 'absolute',
