@@ -34,6 +34,13 @@ const assets = {
   'item-socks-orange': require('@/assets/item-socks-orange.png'),
   'item-socks-pink': require('@/assets/item-socks-pink.png'),
   'item-socks-stripes': require('@/assets/item-socks-stripes.png'),
+  'item-lamp-dark': require('@/assets/item-lamp-dark.png'),
+  'item-lamp-light': require('@/assets/item-lamp-light.png'),
+  'item-bowl-blue': require('@/assets/item-bowl-blue.png'),
+  'item-bowl-yellow': require('@/assets/item-bowl-yellow.png'),
+  'item-ball-football': require('@/assets/item-ball-football.png'),
+  'item-ball-colorfull': require('@/assets/item-ball-colorfull.png'),
+  'item-book-yellow': require('@/assets/item-book-yellow.png'),
 };
 
 interface DraggableItemProps {

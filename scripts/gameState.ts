@@ -15,13 +15,16 @@ export type GameStateEmittedEvent<T extends 'SELECTION' | 'DRAG_SUCCESSFUL' | 'T
 
 export const itemOrder = [
   'kettle-blue', // order the items appear
-  'kettle-bronze',
-  'kettle-gray',
-  'kettle-red',
-  'socks-cat',
-  'socks-orange',
-  'socks-pink',
+  'lamp-dark',
+  'bowl-blue',
+  'ball-colorfull',
   'socks-stripes',
+  'kettle-red',
+  'lamp-light',
+  'bowl-yellow',
+  'ball-football',
+  'book-yellow',
+  'socks-orange',
 ];
 
 export const gameMachine = setup({
