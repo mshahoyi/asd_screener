@@ -77,7 +77,7 @@ export const GameVideo: React.FC<GameVideoProps> = ({ handleCharacterLayout }) =
   }, []);
 
   const playVideo = (videoName: VideoName, onFinishCb?: () => void) => {
-    if (state.value === 'sessionEnded') return;
+    if (state.value === 'sessionEnded' && videoName !== 'bye') return;
 
     currentVideo.current = videoName;
     const videoSrc = videoFiles[videoName];
@@ -161,7 +161,13 @@ export const GameVideo: React.FC<GameVideoProps> = ({ handleCharacterLayout }) =
 
   return (
     <View style={styles.characterContainer} onLayout={handleCharacterLayout}>
-      <VideoView style={styles.characterImage} player={player.current!} allowsFullscreen={false} allowsPictureInPicture={false} />
+      <VideoView
+        style={styles.characterImage}
+        player={player.current!}
+        allowsFullscreen={false}
+        allowsPictureInPicture={false}
+        pointerEvents="none"
+      />
     </View>
   );
 };
