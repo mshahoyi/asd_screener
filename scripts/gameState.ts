@@ -14,16 +14,16 @@ export type GameStateEmittedEvent<T extends 'SELECTION' | 'DRAG_SUCCESSFUL' | 'T
 }[T];
 
 export const itemOrder = [
+  'ball-football',
+  'book-yellow',
   'kettle-blue', // order the items appear
   'lamp-dark',
+  'socks-stripes',
   'bowl-blue',
   'ball-colorfull',
-  'socks-stripes',
   'kettle-red',
   'lamp-light',
   'bowl-yellow',
-  'ball-football',
-  'book-yellow',
   'socks-orange',
 ];
 
