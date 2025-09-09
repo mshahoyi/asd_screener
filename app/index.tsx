@@ -7,10 +7,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { getParticipants, NewParticipant, Participant, ParticipantWithCounts, startGame } from '@/db/controller';
 import { useRefreshOnFocus } from '@/hooks/useRefreshOnFocus';
 import { exportData } from '@/scripts/exportController';
+import { useUpdates } from 'expo-updates';
 
 export default function ResearcherDashboard() {
   const [participants, setParticipants] = useState<ParticipantWithCounts[]>([]);
   const router = useRouter();
+  const { currentlyRunning } = useUpdates();
 
   useEffect(() => {
     loadParticipants();
@@ -106,6 +108,11 @@ export default function ResearcherDashboard() {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.list}
           ListEmptyComponent={<Text>No participants found</Text>}
+          ListFooterComponent={() => (
+            <Text variant="bodySmall" style={styles.version}>
+              version: {currentlyRunning?.updateId?.slice(-8) || 'dev'}
+            </Text>
+          )}
         />
       </View>
     </>
@@ -128,5 +135,11 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
+  },
+  version: {
+    textAlign: 'center',
+    opacity: 0.6,
+    paddingBottom: 12,
+    paddingTop: 8,
   },
 });
