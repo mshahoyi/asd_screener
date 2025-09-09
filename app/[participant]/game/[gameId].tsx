@@ -242,7 +242,7 @@ const getGameItems = (
         characterBounds={characterBounds}
         itemPosition={position}
         positionStyle={positionStyle}
-        key={position}
+        key={`${position}-${itemName}`}
       />
     );
   });

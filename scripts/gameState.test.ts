@@ -66,6 +66,7 @@ describe('gameMachine', () => {
     const actor = createAndStartGameActor();
     actor.send({ type: 'SELECTION', selectedPosition: 'left' });
     actor.send({ type: 'DRAG_SUCCESSFUL' });
+    actor.send({ type: 'NEXT_TRIAL' });
     expect(actor.getSnapshot().value).toBe('presentingTrial');
     expect(actor.getSnapshot().context.trialCount).toBe(2);
   });
