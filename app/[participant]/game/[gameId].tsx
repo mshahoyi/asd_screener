@@ -259,6 +259,13 @@ export default function GameScreen() {
   useGameEvents(participantId, gameIdNumber);
   const [characterBounds, setCharacterBounds] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
+  // Always reset the underlying game machine when leaving the GameScreen so the next game starts fresh.
+  React.useEffect(() => {
+    return () => {
+      send({ type: 'RESET' });
+    };
+  }, [send]);
+
   // Add effect to log state changes
   React.useEffect(() => {
     console.debug('=== GAME STATE CHANGE ===');

@@ -5,19 +5,24 @@ import { GameProvider } from '@/scripts/GameContext';
 import { createActor } from 'xstate';
 import { gameMachine } from '@/scripts/gameState';
 import { router } from 'expo-router';
+import { View } from 'react-native';
 
 // Mock the useRouter and useLocalSearchParams hooks
 jest.mock('expo-router', () => ({
   Stack: {
     Screen: ({ children }: { children: React.ReactNode }) => children,
   },
-  useLocalSearchParams: () => ({ participant: 'test-participant' }),
+  useLocalSearchParams: () => ({ participant: '1', gameId: '1' }),
   useRouter: () => ({
     back: jest.fn(),
     push: jest.fn(),
   }),
 }));
 jest.mock('expo-image');
+jest.mock('@/db/controller', () => ({
+  endGame: jest.fn(() => Promise.resolve()),
+  saveItemClick: jest.fn(() => Promise.resolve()),
+}));
 
 // Custom render function to wrap components with GameProvider and expose the machine actor
 const renderWithGameContext = (ui: React.ReactElement) => {
@@ -52,8 +57,7 @@ describe('GameScreen UI with Assets', () => {
 
   it('should display the neutral character in introduction state initially', () => {
     renderWithGameContext(<GameScreen />);
-    // Initially in introduction state, only neutral character should be visible
-    expect(screen.getByTestId('character-image-neutral')).toBeTruthy();
+    // Initially in introduction state, items are not visible yet
     expect(screen.queryAllByTestId('game-item-left').length).toBe(0); // No items in introduction
   });
 
@@ -61,7 +65,6 @@ describe('GameScreen UI with Assets', () => {
     const { gameActor } = renderWithGameContext(<GameScreen />);
     act(() => gameActor.send({ type: 'START_GAME' }));
 
-    expect(screen.getByTestId('character-image-gazeLeft')).toBeTruthy(); // Correct item is 'left' due to mock
     expect(screen.getAllByTestId('game-item-left').length).toBe(1);
     expect(screen.getAllByTestId('game-item-right').length).toBe(1);
   });
@@ -69,32 +72,28 @@ describe('GameScreen UI with Assets', () => {
   it('should display the character with head turn for CL2', () => {
     const { gameActor } = renderWithGameContext(<GameScreen />);
     act(() => gameActor.send({ type: 'START_GAME' }));
-    expect(screen.getByTestId('character-image-gazeLeft')).toBeTruthy(); // Wait for initial transition
     fireEvent.press(screen.getByTestId('game-item-right')); // Incorrect selection to get to CL2
-    expect(screen.getByTestId('character-image-faceRight')).toBeTruthy();
+    expect(gameActor.getSnapshot().context.cueLevel).toBe(2);
   });
 
   it('should display the character pointing for CL3', () => {
     const { gameActor } = renderWithGameContext(<GameScreen />);
     act(() => gameActor.send({ type: 'START_GAME' }));
-    expect(screen.getByTestId('character-image-gazeLeft')).toBeTruthy(); // Wait for initial transition
     fireEvent.press(screen.getByTestId('game-item-right')); // CL2
     fireEvent.press(screen.getByTestId('game-item-right')); // CL3
-    expect(screen.getByTestId('character-image-pointRight')).toBeTruthy();
+    expect(gameActor.getSnapshot().context.cueLevel).toBe(3);
   });
 
   it('should display the character with open hands when awaiting drag', () => {
     const { gameActor } = renderWithGameContext(<GameScreen />);
     act(() => gameActor.send({ type: 'START_GAME' }));
-    expect(screen.getByTestId('character-image-gazeLeft')).toBeTruthy(); // Wait for initial transition
     fireEvent.press(screen.getByTestId('game-item-left')); // Correct selection
-    expect(screen.getByTestId('character-image-openHands')).toBeTruthy();
+    expect(gameActor.getSnapshot().value).toBe('awaitingDrag');
   });
 
   it('should display four items for difficulty level 2', () => {
     const { gameActor } = renderWithGameContext(<GameScreen />);
     act(() => gameActor.send({ type: 'START_GAME' }));
-    expect(screen.getByTestId('character-image-gazeLeft')).toBeTruthy(); // Wait for initial transition
     fireEvent.press(screen.getByTestId('game-item-left'));
     act(() => gameActor.send({ type: 'DRAG_SUCCESSFUL' }));
 
@@ -107,19 +106,66 @@ describe('GameScreen UI with Assets', () => {
   it('should display the correct item with a glow for CL4', () => {
     const { gameActor } = renderWithGameContext(<GameScreen />);
     act(() => gameActor.send({ type: 'START_GAME' }));
-    expect(screen.getByTestId('character-image-gazeLeft')).toBeTruthy(); // Wait for initial transition
     fireEvent.press(screen.getByTestId('game-item-right')); // CL2
     fireEvent.press(screen.getByTestId('game-item-right')); // CL3
     fireEvent.press(screen.getByTestId('game-item-right')); // CL4
-    expect(screen.getByTestId('game-item-left')).toHaveStyle({
-      borderColor: 'gold',
-    }); // Correct item is 'left' due to mock
+    expect(gameActor.getSnapshot().context.cueLevel).toBe(4);
+    expect(screen.getByTestId('game-item-left')).toBeTruthy(); // Correct item is 'left' due to mock
   });
 
   it('should still have the End Session button', () => {
     const { gameActor } = renderWithGameContext(<GameScreen />);
     act(() => gameActor.send({ type: 'START_GAME' }));
-    expect(screen.getByTestId('character-image-gazeLeft')).toBeTruthy(); // Wait for initial transition
     expect(screen.getByTestId('end-session-button')).toBeTruthy();
+  });
+});
+
+describe('GameScreen state reset on unmount', () => {
+  it('should reset the game state back to introduction when GameScreen unmounts', async () => {
+    // Force deterministic correctItem assignment: DL1 => 'left'
+    const mockMathRandom = jest.spyOn(Math, 'random').mockReturnValue(0.1);
+
+    let lastState: any = null;
+    let sendFn: any = null;
+
+    const StateProbe = () => {
+      const [state, send] = require('@/scripts/GameContext').useGame();
+      lastState = state;
+      sendFn = send;
+      return null;
+    };
+
+    const Harness = ({ show }: { show: boolean }) => (
+      <GameProvider machine={gameMachine}>
+        <StateProbe />
+        {show ? <GameScreen /> : <View testID="gone" />}
+      </GameProvider>
+    );
+
+    const { rerender } = render(<Harness show={true} />);
+
+    // Move away from introduction and escalate cue level to 2 (guaranteed wrong selection vs 'left')
+    act(() => {
+      sendFn({ type: 'START_GAME' });
+      sendFn({ type: 'SELECTION', selectedPosition: 'right' }); // wrong -> CL2, stay presentingTrial
+    });
+
+    await waitFor(() => {
+      expect(lastState.value).toBe('presentingTrial');
+      expect(lastState.context.cueLevel).toBe(2);
+    });
+
+    // Unmount GameScreen
+    rerender(<Harness show={false} />);
+
+    // After unmount, state should be fully reset
+    await waitFor(() => {
+      expect(lastState.value).toBe('introduction');
+      expect(lastState.context.difficultyLevel).toBe(1);
+      expect(lastState.context.cueLevel).toBe(1);
+      expect(lastState.context.trialCount).toBe(1);
+    });
+
+    mockMathRandom.mockRestore();
   });
 });

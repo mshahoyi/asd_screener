@@ -27,6 +27,19 @@ export const itemOrder = [
   'socks-orange',
 ];
 
+function getInitialGameContext() {
+  return {
+    difficultyLevel: 1,
+    cueLevel: 1,
+    trialCount: 1,
+    consecutiveCorrectAtCL2: 0,
+    lastCorrectCueLevel: null as number | null,
+    correctItem: 'left',
+    selectedPosition: '',
+    currentItemIndex: 0,
+  };
+}
+
 export const gameMachine = setup({
   types: {
     emitted: {} as GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'TRIAL_TIMEOUT' | 'GAME_STARTED'>,
@@ -43,6 +56,7 @@ export const gameMachine = setup({
     }),
     recordCorrectCueLevel: assign(({ context }) => ({ lastCorrectCueLevel: context.cueLevel })),
     clearCorrectCueLevel: assign({ lastCorrectCueLevel: null }),
+    resetGameContext: assign(() => getInitialGameContext()),
     assignCorrectItem: assign(({ context }) => {
       const availablePositions = context.difficultyLevel === 1 ? difficulty1Positions : difficulty2Positions;
       const randomIndex = getRandomItemIndex(availablePositions.length);
@@ -72,15 +86,13 @@ export const gameMachine = setup({
 }).createMachine({
   id: 'game',
   initial: 'introduction',
-  context: {
-    difficultyLevel: 1,
-    cueLevel: 1,
-    trialCount: 1,
-    consecutiveCorrectAtCL2: 0,
-    lastCorrectCueLevel: null as number | null,
-    correctItem: 'left',
-    selectedPosition: '',
-    currentItemIndex: 0,
+  context: getInitialGameContext(),
+  on: {
+    // Ensure we can always return to a clean slate when GameScreen unmounts.
+    RESET: {
+      target: '.introduction',
+      actions: ['resetGameContext'],
+    },
   },
   states: {
     introduction: {
