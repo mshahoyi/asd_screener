@@ -7,7 +7,7 @@ export const useGameEvents = (participantId: number, gameId: number) => {
   const [state, send, actor] = useGame();
 
   useEffect(() => {
-    const sub = actor.on('*', (emittedEvent: GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL'>) => {
+    const sub = actor.on('*', (emittedEvent: GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'TRIAL_TIMEOUT' | 'GAME_STARTED'>) => {
       switch (emittedEvent.type) {
         case 'SELECTION':
           trackEvent('selection', participantId, gameId, actor.getSnapshot().context);

@@ -126,6 +126,37 @@ describe('gameMachine', () => {
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
   });
 
+  it('should not upgrade to difficulty level 2 from DL1 if the first correct response is at CL3', () => {
+    const actor = createAndStartGameActor();
+
+    // Escalate to CL3
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // CL3
+    expect(actor.getSnapshot().context.cueLevel).toBe(3);
+
+    // Correct at CL3, then drag successfully
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' });
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+  });
+
+  it('should not upgrade to difficulty level 2 from DL1 if the first correct response is at CL4', () => {
+    const actor = createAndStartGameActor();
+
+    // Escalate to CL4
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // CL3
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // CL4
+    expect(actor.getSnapshot().context.cueLevel).toBe(4);
+
+    // Correct at CL4, then drag successfully
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' });
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+  });
+
   it('should not downgrade difficulty level', () => {
     const actor = createAndStartGameActor();
     actor.send({ type: 'SELECTION', selectedPosition: 'left' });
