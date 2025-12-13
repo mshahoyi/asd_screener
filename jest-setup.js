@@ -11,13 +11,25 @@ jest.mock('expo-video', () => {
   return {
     VideoView: (props) => React.createElement('VideoView', props, props.children),
     VideoPlayer: class VideoPlayer {},
-    createVideoPlayer: jest.fn(() => ({
-      play: jest.fn(),
-      addListener: jest.fn(() => ({ remove: jest.fn() })),
-      release: jest.fn(),
-      replaceAsync: jest.fn(() => Promise.resolve()),
-      currentTime: 0,
-    })),
+    createVideoPlayer: jest.fn((source) => {
+      const playingChangeListeners = [];
+      return {
+        __source: source,
+        __emitPlayingChange: (payload) => {
+          playingChangeListeners.forEach((cb) => cb(payload));
+        },
+        play: jest.fn(),
+        addListener: jest.fn((eventName, cb) => {
+          if (eventName === 'playingChange' && typeof cb === 'function') {
+            playingChangeListeners.push(cb);
+          }
+          return { remove: jest.fn() };
+        }),
+        release: jest.fn(),
+        replaceAsync: jest.fn(() => Promise.resolve()),
+        currentTime: 0,
+      };
+    }),
     useVideoPlayer: jest.fn(),
   };
 });
