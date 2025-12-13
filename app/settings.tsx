@@ -122,6 +122,21 @@ export default function SettingsScreen() {
                 />
               )}
             />
+            <Controller
+              control={control}
+              name="dragTimeout"
+              rules={{ required: true, pattern: /^\d+$/ }}
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  label="Drag Timeout (seconds)"
+                  value={value?.toString()}
+                  onChangeText={onChange}
+                  keyboardType="numeric"
+                  style={styles.input}
+                  error={!!errors.dragTimeout}
+                />
+              )}
+            />
           </Card.Content>
         </Card>
         <Button mode="contained" onPress={handleSubmit(onSubmit)} style={styles.button}>

@@ -6,6 +6,7 @@ export const useGameTimers = () => {
   const [state, send] = useGame();
   const sessionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const clueTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const dragTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Session Timer
   useEffect(() => {
@@ -56,4 +57,33 @@ export const useGameTimers = () => {
       }
     };
   }, [state.context.cueLevel, state.value, send]);
+
+  // Drag Timer (awaitingDrag)
+  useEffect(() => {
+    if (state.value !== 'awaitingDrag') return;
+
+    settingsController
+      .getSettings()
+      .then((settings) => {
+        const timeout = settings.dragTimeout;
+        if (!timeout) {
+          alert('No timeout for drag');
+          return;
+        }
+
+        dragTimerRef.current = setTimeout(() => {
+          send({ type: 'DRAG_TIMEOUT' });
+          if (dragTimerRef.current) {
+            clearTimeout(dragTimerRef.current);
+          }
+        }, timeout * 1000);
+      })
+      .catch(alert);
+
+    return () => {
+      if (dragTimerRef.current) {
+        clearTimeout(dragTimerRef.current);
+      }
+    };
+  }, [state.value, send]);
 };

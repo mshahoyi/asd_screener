@@ -6,6 +6,7 @@ export interface AppSettings {
   cl2Timeout: number; // in seconds
   cl3Timeout: number; // in seconds
   cl4Timeout: number; // in seconds
+  dragTimeout: number; // in seconds
 }
 
 const defaultSettings: AppSettings = {
@@ -14,6 +15,7 @@ const defaultSettings: AppSettings = {
   cl2Timeout: 30,
   cl3Timeout: 30,
   cl4Timeout: 30,
+  dragTimeout: 30,
 };
 
 const SETTINGS_KEY = 'app_settings';
@@ -22,7 +24,9 @@ export const getSettings = async (): Promise<AppSettings> => {
   try {
     const settingsJson = await AsyncStorage.getItem(SETTINGS_KEY);
     if (settingsJson) {
-      return JSON.parse(settingsJson);
+      const stored = JSON.parse(settingsJson);
+      // Merge with defaults so older persisted settings still work when new keys are added.
+      return { ...defaultSettings, ...stored };
     }
     return defaultSettings;
   } catch (error) {

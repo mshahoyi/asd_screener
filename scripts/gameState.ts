@@ -160,6 +160,20 @@ export const gameMachine = setup({
             'emitDragSuccessfulEvent',
           ],
         },
+        // If the child can't drag in time, proceed exactly as if the drag had succeeded.
+        DRAG_TIMEOUT: {
+          target: 'positiveFeedbackForDragSuccess',
+          actions: [
+            'incrementTrialCount',
+            'incrementConsecutiveCorrectAtCL2',
+            'updateDifficulty',
+            'resetCueLevel',
+            'clearCorrectCueLevel',
+            'assignCorrectItem', // Assign new item for next trial
+            'incrementCurrentItemIndex',
+            'emitDragSuccessfulEvent',
+          ],
+        },
         DRAG_FAILED: {
           target: 'presentingTrial',
           actions: ['resetCueLevel', 'clearCorrectCueLevel', 'assignCorrectItem'], // Assign new item for next trial

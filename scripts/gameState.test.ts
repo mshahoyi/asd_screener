@@ -71,6 +71,39 @@ describe('gameMachine', () => {
     expect(actor.getSnapshot().context.trialCount).toBe(2);
   });
 
+  it('should treat a drag timeout as a successful drag for difficulty progression (DL1 + correct at CL1 -> DL2)', () => {
+    const actor = createAndStartGameActor();
+
+    // Correct selection at CL1 -> awaitingDrag with lastCorrectCueLevel=1
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' });
+    expect(actor.getSnapshot().value).toBe('awaitingDrag');
+
+    // Drag times out: should behave like DRAG_SUCCESSFUL
+    actor.send({ type: 'DRAG_TIMEOUT' });
+    expect(actor.getSnapshot().value).toBe('positiveFeedbackForDragSuccess');
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
+    expect(actor.getSnapshot().context.trialCount).toBe(2);
+  });
+
+  it('should treat a drag timeout as a successful drag for difficulty progression (DL1 + correct at CL4 -> stay DL1)', () => {
+    const actor = createAndStartGameActor();
+
+    // Escalate to CL4
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // CL3
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // CL4
+    expect(actor.getSnapshot().context.cueLevel).toBe(4);
+
+    // Correct selection at CL4 -> awaitingDrag with lastCorrectCueLevel=4
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' });
+    expect(actor.getSnapshot().value).toBe('awaitingDrag');
+
+    // Drag times out: should behave like DRAG_SUCCESSFUL, but not upgrade to DL2 because CL4
+    actor.send({ type: 'DRAG_TIMEOUT' });
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+    expect(actor.getSnapshot().context.trialCount).toBe(2);
+  });
+
   it('should return to presentingTrial and reset cue on drag failure', () => {
     const actor = createAndStartGameActor();
     actor.send({ type: 'SELECTION', selectedPosition: 'left' });
