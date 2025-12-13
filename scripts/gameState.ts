@@ -34,6 +34,7 @@ function getInitialGameContext() {
     trialCount: 1,
     consecutiveCorrectAtCL2: 0,
     lastCorrectCueLevel: null as number | null,
+    trialEndCueLevel: null as number | null,
     correctItem: 'left',
     selectedPosition: '',
     currentItemIndex: 0,
@@ -52,15 +53,17 @@ export const gameMachine = setup({
       if (context.difficultyLevel === 1 && (context.lastCorrectCueLevel === 1 || context.lastCorrectCueLevel === 2)) {
         newDifficulty = 2;
       }
-      // Downgrade from DL2 -> DL1 if the child needed cue level 3+ to succeed in DL2.
-      // This signals DL2 is too hard without substantial prompting.
-      if (context.difficultyLevel === 2 && context.lastCorrectCueLevel != null && context.lastCorrectCueLevel >= 3) {
+      // Downgrade from DL2 -> DL1 if the child could not proceed by cue levels 1 and 2
+      // (i.e. the trial reached cue level 3+), even if the trial ended via drag timeout.
+      if (context.difficultyLevel === 2 && context.trialEndCueLevel != null && context.trialEndCueLevel >= 3) {
         newDifficulty = 1;
       }
       return { difficultyLevel: newDifficulty };
     }),
     recordCorrectCueLevel: assign(({ context }) => ({ lastCorrectCueLevel: context.cueLevel })),
+    recordTrialEndCueLevel: assign(({ context }) => ({ trialEndCueLevel: context.cueLevel })),
     clearCorrectCueLevel: assign({ lastCorrectCueLevel: null }),
+    clearTrialEndCueLevel: assign({ trialEndCueLevel: null }),
     resetGameContext: assign(() => getInitialGameContext()),
     assignCorrectItem: assign(({ context }) => {
       const availablePositions = context.difficultyLevel === 1 ? difficulty1Positions : difficulty2Positions;
@@ -114,7 +117,7 @@ export const gameMachine = setup({
           {
             guard: ({ context, event }) => event.selectedPosition === context.correctItem,
             target: 'awaitingDrag',
-            actions: ['recordCorrectCueLevel', 'resetCueLevel', 'saveSelectedPosition', 'emitSelectionEvent'],
+            actions: ['recordTrialEndCueLevel', 'recordCorrectCueLevel', 'resetCueLevel', 'saveSelectedPosition', 'emitSelectionEvent'],
           },
           {
             guard: ({ context, event }) => event.selectedPosition !== context.correctItem,
@@ -131,7 +134,7 @@ export const gameMachine = setup({
           {
             guard: ({ context }) => context.cueLevel === 4,
             target: 'awaitingDrag',
-            actions: ['resetConsecutiveCorrectAtCL2', 'clearCorrectCueLevel', 'emitTimeoutEvent'],
+            actions: ['recordTrialEndCueLevel', 'resetConsecutiveCorrectAtCL2', 'clearCorrectCueLevel', 'emitTimeoutEvent'],
           },
           {
             actions: ['escalateCueLevel', 'resetConsecutiveCorrectAtCL2', 'clearCorrectCueLevel', 'emitTimeoutEvent'],
@@ -155,6 +158,7 @@ export const gameMachine = setup({
             'updateDifficulty',
             'resetCueLevel',
             'clearCorrectCueLevel',
+            'clearTrialEndCueLevel',
             'assignCorrectItem', // Assign new item for next trial
             'incrementCurrentItemIndex',
             'emitDragSuccessfulEvent',
@@ -169,6 +173,7 @@ export const gameMachine = setup({
             'updateDifficulty',
             'resetCueLevel',
             'clearCorrectCueLevel',
+            'clearTrialEndCueLevel',
             'assignCorrectItem', // Assign new item for next trial
             'incrementCurrentItemIndex',
             'emitDragSuccessfulEvent',
@@ -176,7 +181,7 @@ export const gameMachine = setup({
         },
         DRAG_FAILED: {
           target: 'presentingTrial',
-          actions: ['resetCueLevel', 'clearCorrectCueLevel', 'assignCorrectItem'], // Assign new item for next trial
+          actions: ['resetCueLevel', 'clearCorrectCueLevel', 'clearTrialEndCueLevel', 'assignCorrectItem'], // Assign new item for next trial
         },
         SESSION_TIMER_ELAPSED: {
           target: 'sessionEnded',

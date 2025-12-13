@@ -230,6 +230,28 @@ describe('gameMachine', () => {
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
   });
 
+  it('should downgrade to difficulty level 1 in DL2 if the child reaches cue level 3+ without interacting and then drag times out', () => {
+    const actor = createAndStartGameActor();
+
+    // Upgrade to DL2 via correct at CL1 + successful drag
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' });
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    actor.send({ type: 'NEXT_TRIAL' });
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
+
+    // No interaction: let the cues time out all the way to CL4, then TIMEOUT at CL4 moves to awaitingDrag.
+    actor.send({ type: 'TIMEOUT' }); // CL2
+    actor.send({ type: 'TIMEOUT' }); // CL3
+    actor.send({ type: 'TIMEOUT' }); // CL4
+    expect(actor.getSnapshot().context.cueLevel).toBe(4);
+    actor.send({ type: 'TIMEOUT' }); // awaitingDrag
+    expect(actor.getSnapshot().value).toBe('awaitingDrag');
+
+    // Drag times out: should behave like successful drag AND trigger DL2 -> DL1 downgrade because we needed CL3+.
+    actor.send({ type: 'DRAG_TIMEOUT' });
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+  });
+
   it('should end the session after the time limit is reached', () => {
     const actor = createAndStartGameActor();
     // Simulate time passing
