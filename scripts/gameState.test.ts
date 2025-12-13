@@ -157,12 +157,43 @@ describe('gameMachine', () => {
     expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
   });
 
-  it('should not downgrade difficulty level', () => {
+  it('should downgrade to difficulty level 1 if in DL2 the child needs cue level 3 to succeed', () => {
     const actor = createAndStartGameActor();
+
+    // Upgrade to DL2 via correct at CL1 + drag success
     actor.send({ type: 'SELECTION', selectedPosition: 'left' });
-    actor.send({ type: 'DRAG_SUCCESSFUL' }); // difficultyLevel: 2
-    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // Incorrect
-    actor.send({ type: 'SELECTION', selectedPosition: 'bottom-left' }); // Incorrect
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    actor.send({ type: 'NEXT_TRIAL' });
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
+
+    // In DL2, make two incorrect selections so the trial reaches cue level 3
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // incorrect (correctItem will be top-left given Math.random=0.1)
+    expect(actor.getSnapshot().context.cueLevel).toBe(2);
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // incorrect again -> CL3
+    expect(actor.getSnapshot().context.cueLevel).toBe(3);
+
+    // Now succeed at CL3 and complete the trial; DL should downgrade on DRAG_SUCCESSFUL
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-left' }); // correct
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+  });
+
+  it('should stay at difficulty level 2 if in DL2 the child succeeds by cue level 2', () => {
+    const actor = createAndStartGameActor();
+
+    // Upgrade to DL2 via correct at CL1 + drag success
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' });
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    actor.send({ type: 'NEXT_TRIAL' });
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
+
+    // In DL2, make one incorrect selection (CL2), then succeed at CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // incorrect -> CL2
+    expect(actor.getSnapshot().context.cueLevel).toBe(2);
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-left' }); // correct at CL2
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
   });
 

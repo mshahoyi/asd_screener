@@ -52,6 +52,11 @@ export const gameMachine = setup({
       if (context.difficultyLevel === 1 && (context.lastCorrectCueLevel === 1 || context.lastCorrectCueLevel === 2)) {
         newDifficulty = 2;
       }
+      // Downgrade from DL2 -> DL1 if the child needed cue level 3+ to succeed in DL2.
+      // This signals DL2 is too hard without substantial prompting.
+      if (context.difficultyLevel === 2 && context.lastCorrectCueLevel != null && context.lastCorrectCueLevel >= 3) {
+        newDifficulty = 1;
+      }
       return { difficultyLevel: newDifficulty };
     }),
     recordCorrectCueLevel: assign(({ context }) => ({ lastCorrectCueLevel: context.cueLevel })),
