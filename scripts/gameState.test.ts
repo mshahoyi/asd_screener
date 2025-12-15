@@ -144,19 +144,58 @@ describe('gameMachine', () => {
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
   });
 
+  it('should not upgrade to difficulty level 2 after one correct response at CL2 (requires two consecutive CL2 trials)', () => {
+    const actor = createAndStartGameActor();
+    // Make trial succeed at CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // Incorrect to get to CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // Correct at CL2 -> awaitingDrag
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+  });
+
   it('should upgrade to difficulty level 2 after two consecutive correct responses at CL2 and successful drags', () => {
     const actor = createAndStartGameActor();
-    // First CL2 correct response
+    // First CL2 correct response (should NOT upgrade yet)
     actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // Incorrect to get to CL2
     actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // Correct at CL2
     actor.send({ type: 'DRAG_SUCCESSFUL' });
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
 
-    // Second CL2 correct response
+    actor.send({ type: 'NEXT_TRIAL' });
+
+    // Second consecutive CL2 correct response (should upgrade now)
     actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // Incorrect to get to CL2
     actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // Correct at CL2
     actor.send({ type: 'DRAG_SUCCESSFUL' });
-
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
+  });
+
+  it('should require CL2 trials to be consecutive (a non-CL2 trial resets the CL2 streak)', () => {
+    const actor = createAndStartGameActor();
+
+    // Trial 1: succeed at CL2 (streak=1)
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // -> CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // correct at CL2
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+
+    actor.send({ type: 'NEXT_TRIAL' });
+
+    // Trial 2: succeed at CL3 (streak should reset)
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // -> CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // -> CL3
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // correct at CL3
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+
+    actor.send({ type: 'NEXT_TRIAL' });
+
+    // Trial 3: succeed at CL2 again (should be streak=1, still no upgrade)
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // -> CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // correct at CL2
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
   });
 
   it('should not upgrade to difficulty level 2 from DL1 if the first correct response is at CL3', () => {
