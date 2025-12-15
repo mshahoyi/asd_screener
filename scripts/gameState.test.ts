@@ -190,7 +190,7 @@ describe('gameMachine', () => {
     expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
   });
 
-  it('should downgrade to difficulty level 1 if in DL2 the child needs cue level 3 to succeed', () => {
+  it('should not downgrade difficulty level once in DL2, even if the child needs cue level 3 to succeed', () => {
     const actor = createAndStartGameActor();
 
     // Upgrade to DL2 via correct at CL1 + drag success
@@ -205,11 +205,11 @@ describe('gameMachine', () => {
     actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // incorrect again -> CL3
     expect(actor.getSnapshot().context.cueLevel).toBe(3);
 
-    // Now succeed at CL3 and complete the trial; DL should downgrade on DRAG_SUCCESSFUL
+    // Now succeed at CL3 and complete the trial; DL should remain sticky at 2
     actor.send({ type: 'SELECTION', selectedPosition: 'top-left' }); // correct
     actor.send({ type: 'DRAG_SUCCESSFUL' });
 
-    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
   });
 
   it('should stay at difficulty level 2 if in DL2 the child succeeds by cue level 2', () => {
@@ -230,7 +230,7 @@ describe('gameMachine', () => {
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
   });
 
-  it('should downgrade to difficulty level 1 in DL2 if the child reaches cue level 3+ without interacting and then drag times out', () => {
+  it('should not downgrade difficulty level once in DL2, even if the child reaches cue level 3+ without interacting and then drag times out', () => {
     const actor = createAndStartGameActor();
 
     // Upgrade to DL2 via correct at CL1 + successful drag
@@ -247,9 +247,9 @@ describe('gameMachine', () => {
     actor.send({ type: 'TIMEOUT' }); // awaitingDrag
     expect(actor.getSnapshot().value).toBe('awaitingDrag');
 
-    // Drag times out: should behave like successful drag AND trigger DL2 -> DL1 downgrade because we needed CL3+.
+    // Drag times out: should behave like successful drag, and DL should remain sticky at 2.
     actor.send({ type: 'DRAG_TIMEOUT' });
-    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
   });
 
   it('should end the session after the time limit is reached', () => {
