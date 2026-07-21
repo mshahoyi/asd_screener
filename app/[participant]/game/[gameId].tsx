@@ -377,8 +377,11 @@ export default function GameScreen() {
         {/* Character in center */}
         <GameVideo handleCharacterLayout={handleCharacterLayout} />
 
-        {/* Items positioned around character */}
-        {state.value !== 'introduction' && state.value !== 'sessionEnded' && <View style={styles.gameArea}>{gameItems}</View>}
+        {/* Items positioned around character.
+            Only shown while a trial is active (presenting the clue or awaiting the drag). During the
+            positiveFeedbackForDragSuccess state — while Adam is thanking the child and the background/shelf
+            layout may be changing to the next difficulty — the shelves stay empty until the next clue starts. */}
+        {(state.matches('presentingTrial') || state.matches('awaitingDrag')) && <View style={styles.gameArea}>{gameItems}</View>}
 
         {/* End game button */}
         <View

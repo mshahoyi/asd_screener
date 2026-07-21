@@ -151,11 +151,28 @@ describe('GameScreen UI with Assets', () => {
     act(() => gameActor.send({ type: 'START_GAME' }));
     fireEvent.press(screen.getByTestId('game-item-left'));
     act(() => gameActor.send({ type: 'DRAG_SUCCESSFUL' }));
+    // Shelves are empty during the drag-success feedback; the next trial's items appear once
+    // the feedback clip ends and the next clue begins.
+    act(() => gameActor.send({ type: 'NEXT_TRIAL' }));
 
     expect(screen.getAllByTestId('game-item-top-left').length).toBe(1);
     expect(screen.getAllByTestId('game-item-top-right').length).toBe(1);
     expect(screen.getAllByTestId('game-item-bottom-left').length).toBe(1);
     expect(screen.getAllByTestId('game-item-bottom-right').length).toBe(1);
+  });
+
+  it('should leave the shelves empty during the drag-success feedback (theme change)', () => {
+    const { gameActor } = renderWithGameContext(<GameScreen />);
+    act(() => gameActor.send({ type: 'START_GAME' }));
+    fireEvent.press(screen.getByTestId('game-item-left'));
+    act(() => gameActor.send({ type: 'DRAG_SUCCESSFUL' }));
+
+    // In positiveFeedbackForDragSuccess: Adam thanks the child, no items on the shelves yet.
+    expect(gameActor.getSnapshot().value).toBe('positiveFeedbackForDragSuccess');
+    expect(screen.queryByTestId('game-item-top-left')).toBeNull();
+    expect(screen.queryByTestId('game-item-top-right')).toBeNull();
+    expect(screen.queryByTestId('game-item-bottom-left')).toBeNull();
+    expect(screen.queryByTestId('game-item-bottom-right')).toBeNull();
   });
 
   it('should display the correct item with a glow for CL4', () => {
