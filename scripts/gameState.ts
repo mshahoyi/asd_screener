@@ -4,12 +4,13 @@ import { createMachine, assign, setup, emit } from 'xstate';
 const difficulty1Positions = ['left', 'right'];
 const difficulty2Positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
-export type GameStateEmittedEvent<T extends 'SELECTION' | 'DRAG_SUCCESSFUL' | 'TRIAL_TIMEOUT' | 'GAME_STARTED'> = {
+export type GameStateEmittedEvent<T extends 'SELECTION' | 'DRAG_SUCCESSFUL' | 'DRAG_UNSUCCESSFUL' | 'TRIAL_TIMEOUT' | 'GAME_STARTED'> = {
   type: T;
 } & {
   GAME_STARTED: {};
   SELECTION: { selectedPosition: string; correctItem: string };
   DRAG_SUCCESSFUL: {};
+  DRAG_UNSUCCESSFUL: {};
   TRIAL_TIMEOUT: { currentCueLevel: number };
 }[T];
 
@@ -42,7 +43,7 @@ function getInitialGameContext() {
 
 export const gameMachine = setup({
   types: {
-    emitted: {} as GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'TRIAL_TIMEOUT' | 'GAME_STARTED'>,
+    emitted: {} as GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'DRAG_UNSUCCESSFUL' | 'TRIAL_TIMEOUT' | 'GAME_STARTED'>,
   },
   actions: {
     updateDifficulty: assign(({ context }) => {
@@ -84,6 +85,7 @@ export const gameMachine = setup({
       correctItem: context.correctItem,
     })),
     emitDragSuccessfulEvent: emit(() => ({ type: 'DRAG_SUCCESSFUL' as const })),
+    emitDragUnsuccessfulEvent: emit(() => ({ type: 'DRAG_UNSUCCESSFUL' as const })),
     incrementCurrentItemIndex: assign({ currentItemIndex: ({ context }) => (context.currentItemIndex + 1) % itemOrder.length }),
     emitTimeoutEvent: emit(({ context }) => ({
       type: 'TRIAL_TIMEOUT' as const,
@@ -157,7 +159,9 @@ export const gameMachine = setup({
             'emitDragSuccessfulEvent',
           ],
         },
-        // If the child can't drag in time, proceed exactly as if the drag had succeeded.
+        // If the child can't drag in time, progress through the game exactly as if the drag
+        // had succeeded, but emit a DRAG_UNSUCCESSFUL event so the failure clip plays instead
+        // of the success clip.
         DRAG_TIMEOUT: {
           target: 'positiveFeedbackForDragSuccess',
           actions: [
@@ -168,7 +172,7 @@ export const gameMachine = setup({
             'clearCorrectCueLevel',
             'assignCorrectItem', // Assign new item for next trial
             'incrementCurrentItemIndex',
-            'emitDragSuccessfulEvent',
+            'emitDragUnsuccessfulEvent',
           ],
         },
         DRAG_FAILED: {

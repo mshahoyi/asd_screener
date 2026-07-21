@@ -37,6 +37,7 @@ const videoFiles = {
   'shining-bottom-right': require('@/assets/shining bottom right.mp4'),
   drag: require('@/assets/drag.mp4'),
   'drag-success': require('@/assets/drag-success.mp4'),
+  'drag-failure': require('@/assets/drag-failure.mp4'),
   'tap-negative': require('@/assets/tap negative.mp4'),
   'tap-positive': require('@/assets/positive tap.mp4'),
   bye: require('@/assets/bye.mp4'),
@@ -134,7 +135,7 @@ export const GameVideo: React.FC<GameVideoProps> = ({ handleCharacterLayout }) =
       4: 'shining',
     };
 
-    const sub = actor.on('*', (emittedEvent: GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'TRIAL_TIMEOUT' | 'GAME_STARTED'>) => {
+    const sub = actor.on('*', (emittedEvent: GameStateEmittedEvent<'SELECTION' | 'DRAG_SUCCESSFUL' | 'DRAG_UNSUCCESSFUL' | 'TRIAL_TIMEOUT' | 'GAME_STARTED'>) => {
       const state = actor.getSnapshot();
       switch (emittedEvent.type) {
         case 'SELECTION':
@@ -152,6 +153,14 @@ export const GameVideo: React.FC<GameVideoProps> = ({ handleCharacterLayout }) =
 
         case 'DRAG_SUCCESSFUL':
           playVideo('drag-success', () => {
+            send({ type: 'NEXT_TRIAL' });
+            const gazeVideo = getDirectionalVideoName('gaze', state.context.correctItem);
+            playVideo(gazeVideo);
+          });
+          break;
+
+        case 'DRAG_UNSUCCESSFUL':
+          playVideo('drag-failure', () => {
             send({ type: 'NEXT_TRIAL' });
             const gazeVideo = getDirectionalVideoName('gaze', state.context.correctItem);
             playVideo(gazeVideo);
