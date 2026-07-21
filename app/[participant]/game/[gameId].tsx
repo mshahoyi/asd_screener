@@ -339,8 +339,12 @@ export default function GameScreen() {
   useGameEvents(participantId, gameIdNumber);
   const [characterBounds, setCharacterBounds] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
-  // Always reset the underlying game machine when leaving the GameScreen so the next game starts fresh.
+  // Always reset the underlying game machine when entering AND leaving the GameScreen so each game
+  // starts fresh. The actor is shared across sessions (GameProvider lives at the participant layout),
+  // so resetting on mount guarantees a clean `introduction` state even if the previous game left it
+  // in `sessionEnded`.
   React.useEffect(() => {
+    send({ type: 'RESET' });
     return () => {
       send({ type: 'RESET' });
     };
