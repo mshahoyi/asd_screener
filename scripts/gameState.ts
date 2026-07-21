@@ -191,9 +191,12 @@ export const gameMachine = setup({
         },
       },
     },
-    sessionEnded: {
-      type: 'final',
-    },
+    // Intentionally NOT a top-level `final` state. A final state stops the root actor, after which
+    // it ignores all events — including the root-level RESET used to start a fresh game. Because the
+    // actor is shared across game sessions (GameProvider lives at the participant layout), a final
+    // state here would strand it in sessionEnded until the participant stack unmounts. Keeping it a
+    // normal state lets RESET return the machine to `introduction` for the next game.
+    sessionEnded: {},
   },
 });
 

@@ -304,6 +304,23 @@ describe('gameMachine', () => {
     expect(actor.getSnapshot().value).toBe('sessionEnded');
   });
 
+  it('should return to introduction on RESET after the session has ended (so the next game starts fresh)', () => {
+    const actor = createAndStartGameActor();
+    // Progress into the game a bit so context is dirtied, then end the session.
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' });
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    actor.send({ type: 'NEXT_TRIAL' });
+    actor.send({ type: 'SESSION_TIMER_ELAPSED' });
+    expect(actor.getSnapshot().value).toBe('sessionEnded');
+
+    // sessionEnded must NOT stop the actor: RESET should still be processed and start a new game.
+    actor.send({ type: 'RESET' });
+    expect(actor.getSnapshot().value).toBe('introduction');
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+    expect(actor.getSnapshot().context.cueLevel).toBe(1);
+    expect(actor.getSnapshot().context.trialCount).toBe(1);
+  });
+
   it('should save the selected position in the context on SELECTION', () => {
     const actor = createAndStartGameActor();
     actor.send({ type: 'SELECTION', selectedPosition: 'right' });
