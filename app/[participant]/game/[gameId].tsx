@@ -5,7 +5,7 @@ import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useGame } from '@/scripts/GameContext';
 import { GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring, withRepeat, withTiming, interpolate } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withRepeat, withTiming, withDelay, interpolate } from 'react-native-reanimated';
 import { useDragHandler } from '@/hooks/useDragHandler';
 import { useGameEvents } from '@/hooks/useGameEvents';
 import { trackEvent } from '@/scripts/analytics';
@@ -54,6 +54,87 @@ interface DraggableItemProps {
   itemPosition: string;
   positionStyle: any;
 }
+
+// A single twinkling sparkle. Fades in/out, scales, and rotates on a looped, delayed timer so the
+// group as a whole shimmers rather than pulsing in unison.
+interface SparkleSpec {
+  size: number;
+  delay: number;
+  color: string;
+  style: { top?: string; bottom?: string; left?: string; right?: string };
+}
+
+// A warm palette — the sparkles icon is a vector glyph so each one can be tinted freely.
+const SPARKLE_COLORS = {
+  yellow: '#FFD700',
+  orange: '#FF9800',
+};
+
+const SPARKLE_SPECS: SparkleSpec[] = [
+  { size: 16, delay: 0, color: SPARKLE_COLORS.yellow, style: { top: '2%', left: '22%' } },
+  { size: 12, delay: 120, color: SPARKLE_COLORS.orange, style: { top: '14%', right: '4%' } },
+  { size: 14, delay: 260, color: SPARKLE_COLORS.orange, style: { bottom: '10%', left: '8%' } },
+  { size: 18, delay: 400, color: SPARKLE_COLORS.yellow, style: { bottom: '4%', right: '22%' } },
+  { size: 11, delay: 540, color: SPARKLE_COLORS.orange, style: { top: '45%', left: '6%' } },
+  { size: 13, delay: 680, color: SPARKLE_COLORS.yellow, style: { top: '6%', right: '34%' } },
+  { size: 12, delay: 820, color: SPARKLE_COLORS.orange, style: { bottom: '30%', right: '6%' } },
+  { size: 15, delay: 200, color: SPARKLE_COLORS.yellow, style: { top: '2%', right: '16%' } },
+  { size: 10, delay: 340, color: SPARKLE_COLORS.orange, style: { top: '22%', left: '6%' } },
+  { size: 13, delay: 470, color: SPARKLE_COLORS.yellow, style: { bottom: '4%', left: '24%' } },
+  { size: 11, delay: 600, color: SPARKLE_COLORS.orange, style: { bottom: '20%', right: '6%' } },
+  { size: 14, delay: 90, color: SPARKLE_COLORS.yellow, style: { top: '30%', right: '8%' } },
+  { size: 12, delay: 720, color: SPARKLE_COLORS.orange, style: { bottom: '4%', right: '42%' } },
+  { size: 16, delay: 430, color: SPARKLE_COLORS.orange, style: { top: '8%', left: '42%' } },
+  { size: 10, delay: 560, color: SPARKLE_COLORS.yellow, style: { bottom: '40%', left: '8%' } },
+  { size: 13, delay: 300, color: SPARKLE_COLORS.orange, style: { top: '52%', right: '8%' } },
+];
+
+const Sparkle = ({ size, delay, color, style }: SparkleSpec) => {
+  const progress = useSharedValue(0);
+
+  React.useEffect(() => {
+    progress.value = withDelay(delay, withRepeat(withTiming(1, { duration: 650 }), -1, true));
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.value, [0, 1], [0, 1]),
+    transform: [
+      { scale: interpolate(progress.value, [0, 1], [0.3, 1]) },
+      { rotate: `${interpolate(progress.value, [0, 1], [0, 90])}deg` },
+    ],
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: 'absolute',
+          // Glow tinted to the sparkle's own color.
+          shadowColor: color,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.9,
+          shadowRadius: size * 0.6,
+          elevation: 6,
+        },
+        style as any,
+        animatedStyle,
+      ]}
+      pointerEvents="none"
+    >
+      <Ionicons name="sparkles" size={size} color={color} />
+    </Animated.View>
+  );
+};
+
+// Overlay of sparkles rendered over (and slightly around) the correct item at cue level 4.
+// pointerEvents="none" so it never blocks taps or the drag gesture underneath.
+const Sparkles = ({ itemPosition }: { itemPosition: string }) => (
+  <View style={StyleSheet.absoluteFill as any} pointerEvents="none" testID={`sparkles-${itemPosition}`}>
+    {SPARKLE_SPECS.map((spec, index) => (
+      <Sparkle key={index} {...spec} />
+    ))}
+  </View>
+);
 
 const DraggableItem = ({
   isCorrect,
@@ -138,14 +219,12 @@ const DraggableItem = ({
     };
   });
 
-  // Animated glow style
+  // Animated glow style — a pulsing gold shine/sparkle, with no scaling so the object stays put.
   const glowStyle = useAnimatedStyle(() => {
-    const scale = interpolate(glowAnimation.value, [0, 1], [1, 1.1]);
     const shadowOpacity = interpolate(glowAnimation.value, [0, 1], [0.3, 0.8]);
     const shadowRadius = interpolate(glowAnimation.value, [0, 1], [16, 32]);
 
     return {
-      transform: [{ scale }],
       shadowColor: '#FFD700', // Gold color
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: isGlowing ? shadowOpacity : 0,
@@ -171,6 +250,7 @@ const DraggableItem = ({
             >
               <Image testID={`game-item-${imageKey}`} source={assets[imageKey]} style={styles.gameItemImage} contentFit="contain" />
             </TouchableOpacity>
+            {isGlowing && <Sparkles itemPosition={itemPosition} />}
           </Animated.View>
         </Animated.View>
       </GestureDetector>
