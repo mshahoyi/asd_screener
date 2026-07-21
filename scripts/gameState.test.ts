@@ -340,6 +340,18 @@ describe('gameMachine', () => {
     actor.send({ type: 'DRAG_SUCCESSFUL' });
   });
 
+  it('should emit a drag unsuccessful event when the drag times out', (done) => {
+    const actor = createAndStartGameActor();
+
+    actor.on('DRAG_UNSUCCESSFUL', (event) => {
+      expect(event.type).toBe('DRAG_UNSUCCESSFUL');
+      done();
+    });
+
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' });
+    actor.send({ type: 'DRAG_TIMEOUT' });
+  });
+
   it('should transition to awaitingDrag on TIMEOUT when cueLevel is 4', () => {
     const actor = createAndStartGameActor();
     // Escalate to cue level 4
