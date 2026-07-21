@@ -185,6 +185,23 @@ describe('GameScreen UI with Assets', () => {
     expect(screen.getByTestId('game-item-left')).toBeTruthy(); // Correct item is 'left' due to mock
   });
 
+  it('should sparkle only the correct item at CL4', () => {
+    const { gameActor } = renderWithGameContext(<GameScreen />);
+    act(() => gameActor.send({ type: 'START_GAME' }));
+
+    // Below CL4 there are no sparkles yet.
+    expect(screen.queryByTestId('sparkles-left')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('game-item-right')); // CL2
+    fireEvent.press(screen.getByTestId('game-item-right')); // CL3
+    fireEvent.press(screen.getByTestId('game-item-right')); // CL4
+    expect(gameActor.getSnapshot().context.cueLevel).toBe(4);
+
+    // Sparkles appear on the correct item ('left' due to mock), and only there.
+    expect(screen.getByTestId('sparkles-left')).toBeTruthy();
+    expect(screen.queryByTestId('sparkles-right')).toBeNull();
+  });
+
   it('should still have the End Session button', () => {
     const { gameActor } = renderWithGameContext(<GameScreen />);
     act(() => gameActor.send({ type: 'START_GAME' }));
