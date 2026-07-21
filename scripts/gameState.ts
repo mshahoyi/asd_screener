@@ -33,7 +33,9 @@ function getInitialGameContext() {
     difficultyLevel: 1,
     cueLevel: 1,
     trialCount: 1,
-    consecutiveCorrectAtCL2: 0,
+    // Whether the player has already completed their first-ever DL-II trial. The first DL-II trial is
+    // probationary (can regress to DL-I); once it's done, DL-II never regresses again.
+    firstDL2TrialDone: false,
     lastCorrectCueLevel: null as number | null,
     correctItem: 'left',
     selectedPosition: '',
@@ -47,19 +49,22 @@ export const gameMachine = setup({
   },
   actions: {
     updateDifficulty: assign(({ context }) => {
-      let newDifficulty = context.difficultyLevel;
-      // DL2 is sticky: no downgrades.
-      // Upgrade from DL1 -> DL2:
-      // - immediately if the child succeeds at CL1
-      // - or after two consecutive trials succeeded at CL2
+      // "Tapped easily" = the target was tapped at CL-I or CL-II (little/no prompting).
+      // A missing lastCorrectCueLevel means no interaction (timed out to CL-IV), which is not easy.
+      const tappedEasily = context.lastCorrectCueLevel != null && context.lastCorrectCueLevel <= 2;
+
+      // DL-I: upgrade to DL-II as soon as the target is tapped at CL-I or CL-II.
+      // Tapping at CL-III+ or no interaction keeps the player at DL-I.
       if (context.difficultyLevel === 1) {
-        if (context.lastCorrectCueLevel === 1) {
-          newDifficulty = 2;
-        } else if (context.lastCorrectCueLevel === 2 && context.consecutiveCorrectAtCL2 >= 2) {
-          newDifficulty = 2;
-        }
+        return { difficultyLevel: tappedEasily ? 2 : 1 };
       }
-      return { difficultyLevel: newDifficulty };
+
+      // DL-II: the very first DL-II trial is probationary — if it isn't solved easily (>= CL-III or no
+      // interaction), the player regresses to DL-I. Every DL-II trial after that first one is permanent
+      // (no regression). Either way, the probation is spent once the first DL-II trial completes.
+      const isFirstDL2Trial = !context.firstDL2TrialDone;
+      const newDifficulty = isFirstDL2Trial && !tappedEasily ? 1 : 2;
+      return { difficultyLevel: newDifficulty, firstDL2TrialDone: true };
     }),
     recordCorrectCueLevel: assign(({ context }) => ({ lastCorrectCueLevel: context.cueLevel })),
     clearCorrectCueLevel: assign({ lastCorrectCueLevel: null }),
@@ -73,10 +78,6 @@ export const gameMachine = setup({
       return { selectedPosition: event.selectedPosition };
     }),
     incrementTrialCount: assign({ trialCount: ({ context }) => context.trialCount + 1 }),
-    resetConsecutiveCorrectAtCL2: assign({ consecutiveCorrectAtCL2: 0 }),
-    updateConsecutiveCorrectAtCL2: assign({
-      consecutiveCorrectAtCL2: ({ context }) => (context.lastCorrectCueLevel === 2 ? context.consecutiveCorrectAtCL2 + 1 : 0),
-    }),
     escalateCueLevel: assign({ cueLevel: ({ context }) => Math.min(context.cueLevel + 1, 4) }),
     resetCueLevel: assign({ cueLevel: 1 }),
     emitSelectionEvent: emit(({ event, context }) => ({
@@ -150,7 +151,6 @@ export const gameMachine = setup({
           target: 'positiveFeedbackForDragSuccess',
           actions: [
             'incrementTrialCount',
-            'updateConsecutiveCorrectAtCL2',
             'updateDifficulty',
             'resetCueLevel',
             'clearCorrectCueLevel',
@@ -166,7 +166,6 @@ export const gameMachine = setup({
           target: 'positiveFeedbackForDragSuccess',
           actions: [
             'incrementTrialCount',
-            'updateConsecutiveCorrectAtCL2',
             'updateDifficulty',
             'resetCueLevel',
             'clearCorrectCueLevel',

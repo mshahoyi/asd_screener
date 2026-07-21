@@ -144,57 +144,26 @@ describe('gameMachine', () => {
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
   });
 
-  it('should not upgrade to difficulty level 2 after one correct response at CL2 (requires two consecutive CL2 trials)', () => {
+  it('should upgrade to difficulty level 2 after one correct response at CL2 and successful drag', () => {
     const actor = createAndStartGameActor();
-    // Make trial succeed at CL2
-    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // Incorrect to get to CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // Incorrect -> CL2
     actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // Correct at CL2 -> awaitingDrag
     actor.send({ type: 'DRAG_SUCCESSFUL' });
 
-    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
-  });
-
-  it('should upgrade to difficulty level 2 after two consecutive correct responses at CL2 and successful drags', () => {
-    const actor = createAndStartGameActor();
-    // First CL2 correct response (should NOT upgrade yet)
-    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // Incorrect to get to CL2
-    actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // Correct at CL2
-    actor.send({ type: 'DRAG_SUCCESSFUL' });
-    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
-
-    actor.send({ type: 'NEXT_TRIAL' });
-
-    // Second consecutive CL2 correct response (should upgrade now)
-    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // Incorrect to get to CL2
-    actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // Correct at CL2
-    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    // A single tap at <= CL-II upgrades immediately (no consecutive requirement).
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
   });
 
-  it('should require CL2 trials to be consecutive (a non-CL2 trial resets the CL2 streak)', () => {
+  it('should not upgrade to difficulty level 2 from DL1 without interaction (times out to CL4, then drag times out)', () => {
     const actor = createAndStartGameActor();
 
-    // Trial 1: succeed at CL2 (streak=1)
-    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // -> CL2
-    actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // correct at CL2
-    actor.send({ type: 'DRAG_SUCCESSFUL' });
-    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+    actor.send({ type: 'TIMEOUT' }); // CL2
+    actor.send({ type: 'TIMEOUT' }); // CL3
+    actor.send({ type: 'TIMEOUT' }); // CL4
+    actor.send({ type: 'TIMEOUT' }); // -> awaitingDrag
+    actor.send({ type: 'DRAG_TIMEOUT' });
 
-    actor.send({ type: 'NEXT_TRIAL' });
-
-    // Trial 2: succeed at CL3 (streak should reset)
-    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // -> CL2
-    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // -> CL3
-    actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // correct at CL3
-    actor.send({ type: 'DRAG_SUCCESSFUL' });
-    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
-
-    actor.send({ type: 'NEXT_TRIAL' });
-
-    // Trial 3: succeed at CL2 again (should be streak=1, still no upgrade)
-    actor.send({ type: 'SELECTION', selectedPosition: 'right' }); // -> CL2
-    actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // correct at CL2
-    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    // No target tap means no upgrade.
     expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
   });
 
@@ -229,39 +198,17 @@ describe('gameMachine', () => {
     expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
   });
 
-  it('should not downgrade difficulty level once in DL2, even if the child needs cue level 3 to succeed', () => {
+  it('should keep DL2 when the first DL2 trial is solved easily (<= CL2)', () => {
     const actor = createAndStartGameActor();
 
-    // Upgrade to DL2 via correct at CL1 + drag success
+    // Upgrade to DL2 via correct at CL1 + drag success, then start the first (probationary) DL2 trial.
     actor.send({ type: 'SELECTION', selectedPosition: 'left' });
     actor.send({ type: 'DRAG_SUCCESSFUL' });
     actor.send({ type: 'NEXT_TRIAL' });
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
 
-    // In DL2, make two incorrect selections so the trial reaches cue level 3
-    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // incorrect (correctItem will be top-left given Math.random=0.1)
-    expect(actor.getSnapshot().context.cueLevel).toBe(2);
-    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // incorrect again -> CL3
-    expect(actor.getSnapshot().context.cueLevel).toBe(3);
-
-    // Now succeed at CL3 and complete the trial; DL should remain sticky at 2
-    actor.send({ type: 'SELECTION', selectedPosition: 'top-left' }); // correct
-    actor.send({ type: 'DRAG_SUCCESSFUL' });
-
-    expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
-  });
-
-  it('should stay at difficulty level 2 if in DL2 the child succeeds by cue level 2', () => {
-    const actor = createAndStartGameActor();
-
-    // Upgrade to DL2 via correct at CL1 + drag success
-    actor.send({ type: 'SELECTION', selectedPosition: 'left' });
-    actor.send({ type: 'DRAG_SUCCESSFUL' });
-    actor.send({ type: 'NEXT_TRIAL' });
-    expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
-
-    // In DL2, make one incorrect selection (CL2), then succeed at CL2
-    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // incorrect -> CL2
+    // Solve the first DL2 trial at CL2 -> probation passed, DL2 locks in.
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // incorrect (correctItem is top-left given Math.random=0.1) -> CL2
     expect(actor.getSnapshot().context.cueLevel).toBe(2);
     actor.send({ type: 'SELECTION', selectedPosition: 'top-left' }); // correct at CL2
     actor.send({ type: 'DRAG_SUCCESSFUL' });
@@ -269,25 +216,91 @@ describe('gameMachine', () => {
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
   });
 
-  it('should not downgrade difficulty level once in DL2, even if the child reaches cue level 3+ without interacting and then drag times out', () => {
+  it('should regress to DL1 when the first DL2 trial needs CL3+ to succeed (probation)', () => {
     const actor = createAndStartGameActor();
 
-    // Upgrade to DL2 via correct at CL1 + successful drag
+    // Upgrade to DL2, then start the first (probationary) DL2 trial.
     actor.send({ type: 'SELECTION', selectedPosition: 'left' });
     actor.send({ type: 'DRAG_SUCCESSFUL' });
     actor.send({ type: 'NEXT_TRIAL' });
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
 
-    // No interaction: let the cues time out all the way to CL4, then TIMEOUT at CL4 moves to awaitingDrag.
+    // Needs CL3 to succeed on the first DL2 trial -> probation failed, regress to DL1.
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // -> CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // -> CL3
+    expect(actor.getSnapshot().context.cueLevel).toBe(3);
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-left' }); // correct at CL3
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+  });
+
+  it('should regress to DL1 when the first DL2 trial has no interaction (drag times out)', () => {
+    const actor = createAndStartGameActor();
+
+    // Upgrade to DL2, then start the first (probationary) DL2 trial.
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' });
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    actor.send({ type: 'NEXT_TRIAL' });
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
+
+    // No interaction: time out to CL4 then drag times out -> probation failed, regress to DL1.
     actor.send({ type: 'TIMEOUT' }); // CL2
     actor.send({ type: 'TIMEOUT' }); // CL3
     actor.send({ type: 'TIMEOUT' }); // CL4
-    expect(actor.getSnapshot().context.cueLevel).toBe(4);
-    actor.send({ type: 'TIMEOUT' }); // awaitingDrag
-    expect(actor.getSnapshot().value).toBe('awaitingDrag');
-
-    // Drag times out: should behave like successful drag, and DL should remain sticky at 2.
+    actor.send({ type: 'TIMEOUT' }); // -> awaitingDrag
     actor.send({ type: 'DRAG_TIMEOUT' });
+
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+  });
+
+  it('should never regress from DL2 again after the first DL2 trial is passed, even at CL3+', () => {
+    const actor = createAndStartGameActor();
+
+    // Upgrade to DL2 and pass the first DL2 trial at CL1.
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' });
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    actor.send({ type: 'NEXT_TRIAL' });
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-left' }); // correct at CL1 -> probation passed
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    actor.send({ type: 'NEXT_TRIAL' });
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
+
+    // A later DL2 trial solved at CL3 must NOT regress.
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // -> CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // -> CL3
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-left' }); // correct at CL3
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
+  });
+
+  it('should not regress on a later climb back to DL2 after the first DL2 trial already regressed', () => {
+    const actor = createAndStartGameActor();
+
+    // Upgrade to DL2, then FAIL the first DL2 trial at CL3 -> regress to DL1.
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' });
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    actor.send({ type: 'NEXT_TRIAL' });
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // -> CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // -> CL3
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-left' }); // correct at CL3
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    actor.send({ type: 'NEXT_TRIAL' });
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(1);
+
+    // Climb back to DL2 via a CL1 tap (correct item is 'left' again at DL1).
+    actor.send({ type: 'SELECTION', selectedPosition: 'left' }); // correct at CL1 -> DL2
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+    actor.send({ type: 'NEXT_TRIAL' });
+    expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
+
+    // This later DL2 is permanent: solving at CL3 must NOT regress.
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // -> CL2
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-right' }); // -> CL3
+    actor.send({ type: 'SELECTION', selectedPosition: 'top-left' }); // correct at CL3
+    actor.send({ type: 'DRAG_SUCCESSFUL' });
+
     expect(actor.getSnapshot().context.difficultyLevel).toBe(2);
   });
 
