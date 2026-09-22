@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the paper below and this repository."
+title: "Gamified joint-attention task (GS): an iPad app for automated assessment of response to joint attention"
+authors:
+  - family-names: Abu Baker
+    given-names: Mohammed
+    orcid: "https://orcid.org/0009-0006-9867-5998"
+    affiliation: "Anglia Ruskin University"
+  - family-names: Hasan
+    given-names: Hanan H.
+    orcid: "https://orcid.org/0009-0009-1377-5490"
+    affiliation: "Anglia Ruskin University"
+  - family-names: Ford
+    given-names: Ruth M.
+    orcid: "https://orcid.org/0000-0002-0001-3720"
+    affiliation: "Anglia Ruskin University"
+license: MIT
+repository-code: "https://github.com/mshahoyi/asd_screener"
+preferred-citation:
+  type: article
+  title: "An open-source gamified tablet system for automated assessment of response to joint attention: A pilot study with autistic and typically developing preschoolers"
+  authors:
+    - family-names: Hasan
+      given-names: Hanan H.
+    - family-names: Ford
+      given-names: Ruth M.
+    - family-names: Abu Baker
+      given-names: Mohammed
+  status: preprint
