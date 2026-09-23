@@ -8,6 +8,5 @@
 | icons, splash | App icons | — |
 
 **Licence:** the object and room images are released under
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The licence for the video clips is being
-confirmed before the archived (DOI) release: their speech track was produced with a
-text-to-speech service.
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The video clips are included so that the
+task runs as published; they are not covered by an open licence.

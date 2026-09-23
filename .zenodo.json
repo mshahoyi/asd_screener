@@ -1,0 +1,33 @@
+{
+  "title": "Gamified joint-attention task (GS): an iPad app for automated assessment of response to joint attention",
+  "upload_type": "software",
+  "description": "<p>An iPad app (Expo / React Native, TypeScript) that measures preschool children's response to joint attention (RJA) automatically. A child-like virtual character directs the child to one of two or four identical objects with escalating cues (gaze, head turn, pointing, highlighting); trials are scored by the cue level needed, difficulty adapts, and every touch, selection and drag is logged on the device and exported as JSON.</p><p>Licences: source code MIT; object and room images CC BY 4.0; the video clips are included so the task runs as published but are not openly licensed (see assets/README.md). Export format: docs/DATA.md.</p>",
+  "creators": [
+    {
+      "name": "Abu Baker, Mohammed",
+      "affiliation": "Anglia Ruskin University",
+      "orcid": "0009-0006-9867-5998"
+    },
+    {
+      "name": "Hasan, Hanan H.",
+      "affiliation": "Anglia Ruskin University",
+      "orcid": "0009-0009-1377-5490"
+    },
+    {
+      "name": "Ford, Ruth M.",
+      "affiliation": "Anglia Ruskin University",
+      "orcid": "0000-0002-0001-3720"
+    }
+  ],
+  "license": "MIT",
+  "access_right": "open",
+  "keywords": [
+    "joint attention",
+    "autism",
+    "tablet-based assessment",
+    "gamification",
+    "touchscreen",
+    "preschoolers",
+    "open-source software"
+  ]
+}
